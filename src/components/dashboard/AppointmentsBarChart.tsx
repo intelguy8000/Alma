@@ -37,17 +37,17 @@ export function AppointmentsBarChart({ data }: AppointmentsBarChartProps) {
   const [selectedRange, setSelectedRange] = useState("30d");
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+    <div className="bg-[#F6FFF8] rounded-xl p-6 shadow-sm border border-[#CCE3DE]">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">
+        <h3 className="text-lg font-semibold text-[#2D3D35]">
           Resumen de Citas
         </h3>
         <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-gray-400" />
+          <Calendar className="w-4 h-4 text-[#5C7A6B]" />
           <select
             value={selectedRange}
             onChange={(e) => setSelectedRange(e.target.value)}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            className="text-sm border border-[#CCE3DE] rounded-lg px-3 py-1.5 bg-[#F6FFF8] focus:outline-none focus:ring-2 focus:ring-[#6B9080] focus:border-transparent text-[#3D5A4C]"
           >
             {dateRanges.map((range) => (
               <option key={range.value} value={range.value}>
@@ -63,53 +63,53 @@ export function AppointmentsBarChart({ data }: AppointmentsBarChartProps) {
             data={data}
             margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#CCE3DE" />
             <XAxis
               dataKey="name"
-              tick={{ fontSize: 12, fill: "#6b7280" }}
-              axisLine={{ stroke: "#e5e7eb" }}
+              tick={{ fontSize: 12, fill: "#5C7A6B" }}
+              axisLine={{ stroke: "#CCE3DE" }}
             />
             <YAxis
-              tick={{ fontSize: 12, fill: "#6b7280" }}
-              axisLine={{ stroke: "#e5e7eb" }}
+              tick={{ fontSize: 12, fill: "#5C7A6B" }}
+              axisLine={{ stroke: "#CCE3DE" }}
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: "#fff",
-                border: "1px solid #e5e7eb",
+                backgroundColor: "#F6FFF8",
+                border: "1px solid #CCE3DE",
                 borderRadius: "8px",
                 boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
               }}
             />
             <Legend />
             <Bar
-              dataKey="presenciales"
-              name="Presenciales"
-              fill="#10B981"
-              radius={[4, 4, 0, 0]}
-            />
-            <Bar
-              dataKey="virtuales"
-              name="Virtuales"
-              fill="#3B82F6"
+              dataKey="antiguos"
+              name="Pacientes Antiguos"
+              fill="#D4A574"
               radius={[4, 4, 0, 0]}
             />
             <Bar
               dataKey="nuevos"
               name="Pacientes Nuevos"
-              fill="#8B5CF6"
+              fill="#84A98C"
               radius={[4, 4, 0, 0]}
             />
             <Bar
-              dataKey="antiguos"
-              name="Pacientes Antiguos"
-              fill="#F59E0B"
+              dataKey="presenciales"
+              name="Presenciales"
+              fill="#6B9080"
               radius={[4, 4, 0, 0]}
             />
             <Bar
               dataKey="terapiaChoque"
               name="Terapia de Choque"
-              fill="#EC4899"
+              fill="#E07A5F"
+              radius={[4, 4, 0, 0]}
+            />
+            <Bar
+              dataKey="virtuales"
+              name="Virtuales"
+              fill="#A4C3B2"
               radius={[4, 4, 0, 0]}
             />
           </BarChart>

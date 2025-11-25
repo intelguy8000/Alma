@@ -45,40 +45,50 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.696 0.17 162.48);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.95 0.052 163);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.696 0.17 162.48);
-  --chart-1: oklch(0.696 0.17 162.48);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar-bg: oklch(0.145 0 0);
-  --sidebar: oklch(0.145 0 0);
-  --sidebar-foreground: oklch(0.9 0 0);
-  --sidebar-primary: oklch(0.696 0.17 162.48);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.2 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.25 0 0);
-  --sidebar-ring: oklch(0.696 0.17 162.48);
-  --sidebar-muted: oklch(0.556 0 0);
-  --emerald: #10B981;
+  /* Paleta Verde Menta/Sage - Propuesta A */
+  --background: #EAF4F4;
+  --foreground: #2D3D35;
+  --card: #F6FFF8;
+  --card-foreground: #2D3D35;
+  --popover: #F6FFF8;
+  --popover-foreground: #2D3D35;
+  --primary: #6B9080;
+  --primary-foreground: #FFFFFF;
+  --secondary: #A4C3B2;
+  --secondary-foreground: #2D3D35;
+  --muted: #CCE3DE;
+  --muted-foreground: #5C7A6B;
+  --accent: #CCE3DE;
+  --accent-foreground: #3D5A4C;
+  --destructive: #E07A5F;
+  --border: #CCE3DE;
+  --input: #CCE3DE;
+  --ring: #6B9080;
+  --chart-1: #6B9080;
+  --chart-2: #84A98C;
+  --chart-3: #A4C3B2;
+  --chart-4: #D4A574;
+  --chart-5: #81C784;
+  --sidebar-bg: #6B9080;
+  --sidebar: #6B9080;
+  --sidebar-foreground: #FFFFFF;
+  --sidebar-primary: #FFFFFF;
+  --sidebar-primary-foreground: #6B9080;
+  --sidebar-accent: rgba(255,255,255,0.15);
+  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-border: rgba(255,255,255,0.2);
+  --sidebar-ring: #A4C3B2;
+  --sidebar-muted: rgba(255,255,255,0.7);
+
+  /* Colores de scorecards */
+  --scorecard-1: #CCE3DE;
+  --scorecard-1-text: #3D5A4C;
+  --scorecard-2: #D8E2DC;
+  --scorecard-2-text: #3D5A4C;
+  --scorecard-3: #F5E6D3;
+  --scorecard-3-text: #8B6914;
+  --scorecard-4: #E8F5E9;
+  --scorecard-4-text: #2E7D32;
 }
 
 .dark {
@@ -126,22 +136,22 @@
 
 /* FullCalendar Custom Styles */
 .fc {
-  --fc-border-color: #e5e7eb;
-  --fc-button-bg-color: #10B981;
-  --fc-button-border-color: #10B981;
-  --fc-button-hover-bg-color: #059669;
-  --fc-button-hover-border-color: #059669;
-  --fc-button-active-bg-color: #047857;
-  --fc-button-active-border-color: #047857;
-  --fc-today-bg-color: #ecfdf5;
-  --fc-now-indicator-color: #10B981;
+  --fc-border-color: #CCE3DE;
+  --fc-button-bg-color: #6B9080;
+  --fc-button-border-color: #6B9080;
+  --fc-button-hover-bg-color: #5A7A6B;
+  --fc-button-hover-border-color: #5A7A6B;
+  --fc-button-active-bg-color: #4A6A5B;
+  --fc-button-active-border-color: #4A6A5B;
+  --fc-today-bg-color: #F6FFF8;
+  --fc-now-indicator-color: #6B9080;
   --fc-event-border-color: transparent;
 }
 
 .fc .fc-toolbar-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #111827;
+  color: #2D3D35;
 }
 
 .fc .fc-button {
@@ -154,19 +164,19 @@
 
 .fc .fc-button-primary:not(:disabled).fc-button-active,
 .fc .fc-button-primary:not(:disabled):active {
-  background-color: #047857;
-  border-color: #047857;
+  background-color: #4A6A5B;
+  border-color: #4A6A5B;
 }
 
 .fc .fc-col-header-cell-cushion {
   font-weight: 500;
-  color: #6b7280;
+  color: #5C7A6B;
   padding: 0.75rem 0;
 }
 
 .fc .fc-timegrid-slot-label-cushion {
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: #5C7A6B;
 }
 
 .fc .fc-event {
@@ -213,19 +223,19 @@
 }
 
 .fc .fc-highlight {
-  background-color: #d1fae5;
+  background-color: #CCE3DE;
 }
 
 .fc .fc-timegrid-now-indicator-line {
-  border-color: #10B981;
+  border-color: #6B9080;
   border-width: 2px;
 }
 
 .fc .fc-timegrid-now-indicator-arrow {
-  border-top-color: #10B981;
+  border-top-color: #6B9080;
 }
 
 /* Selection styles */
 .fc .fc-highlight {
-  background: rgba(16, 185, 129, 0.15);
+  background: rgba(107, 144, 128, 0.2);
 }

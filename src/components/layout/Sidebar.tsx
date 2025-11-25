@@ -79,11 +79,11 @@ function SidebarContent() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#0f0f0f] text-white">
+    <div className="flex flex-col h-full bg-[#6B9080] text-white">
       {/* Logo */}
-      <div className="flex items-center justify-between p-4 border-b border-white/10">
+      <div className="flex items-center justify-between p-4 border-b border-white/20">
         <div className="flex items-center gap-3 overflow-hidden">
-          <div className="w-9 h-9 rounded-lg bg-emerald-500 flex items-center justify-center flex-shrink-0">
+          <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
             <span className="text-white font-bold text-lg">M</span>
           </div>
           <span
@@ -123,17 +123,17 @@ function SidebarContent() {
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative",
                     isActive
-                      ? "bg-emerald-500/20 text-emerald-400"
-                      : "text-gray-400 hover:bg-white/5 hover:text-white"
+                      ? "bg-white/20 text-white"
+                      : "text-white/70 hover:bg-white/10 hover:text-white"
                   )}
                 >
                   {isActive && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-emerald-500 rounded-r-full" />
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white rounded-r-full" />
                   )}
                   <Icon
                     className={cn(
                       "w-5 h-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110",
-                      isActive && "text-emerald-400"
+                      isActive && "text-white"
                     )}
                   />
                   <span
@@ -145,7 +145,7 @@ function SidebarContent() {
                     {item.name}
                   </span>
                   {!isExpanded && (
-                    <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 shadow-lg">
+                    <div className="absolute left-full ml-2 px-2 py-1 bg-[#3D5A4C] text-white text-sm rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 shadow-lg">
                       {item.name}
                     </div>
                   )}
@@ -157,14 +157,14 @@ function SidebarContent() {
       </nav>
 
       {/* User Profile */}
-      <div className="border-t border-white/10 p-3">
+      <div className="border-t border-white/20 p-3">
         <div
           className={cn(
-            "flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer",
+            "flex items-center gap-3 p-2 rounded-lg hover:bg-white/10 transition-colors cursor-pointer",
             !isExpanded && "justify-center"
           )}
         >
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center flex-shrink-0">
+          <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
             <span className="text-white font-medium text-sm">
               {session?.user?.name?.charAt(0)?.toUpperCase() || "U"}
             </span>
@@ -178,7 +178,7 @@ function SidebarContent() {
             <p className="text-sm font-medium text-white truncate">
               {session?.user?.name || "Usuario"}
             </p>
-            <p className="text-xs text-gray-400 truncate">
+            <p className="text-xs text-white/70 truncate">
               {session?.user?.role || "admin"}
             </p>
           </div>
@@ -186,7 +186,7 @@ function SidebarContent() {
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
           className={cn(
-            "flex items-center gap-3 w-full mt-2 p-2 rounded-lg text-gray-400 hover:bg-red-500/10 hover:text-red-400 transition-colors",
+            "flex items-center gap-3 w-full mt-2 p-2 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors",
             !isExpanded && "justify-center"
           )}
         >

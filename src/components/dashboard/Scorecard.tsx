@@ -10,6 +10,8 @@ interface ScorecardProps {
   change: number;
   icon: LucideIcon;
   iconColor?: string;
+  bgColor?: string;
+  textColor?: string;
 }
 
 export function Scorecard({
@@ -18,12 +20,14 @@ export function Scorecard({
   subtitle,
   change,
   icon: Icon,
-  iconColor = "bg-emerald-500",
+  iconColor = "bg-[#6B9080]",
+  bgColor = "bg-[#CCE3DE]",
+  textColor = "text-[#3D5A4C]",
 }: ScorecardProps) {
   const isPositive = change >= 0;
 
   return (
-    <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+    <div className={cn("rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow", bgColor)}>
       <div className="flex items-center justify-between mb-3">
         <div
           className={cn(
@@ -37,8 +41,8 @@ export function Scorecard({
           className={cn(
             "text-sm font-medium px-2 py-0.5 rounded-full",
             isPositive
-              ? "text-emerald-700 bg-emerald-50"
-              : "text-red-700 bg-red-50"
+              ? "text-[#2E7D32] bg-[#E8F5E9]"
+              : "text-[#C65D3B] bg-[#FFE4D6]"
           )}
         >
           {isPositive ? "+" : ""}
@@ -46,9 +50,9 @@ export function Scorecard({
         </span>
       </div>
       <div>
-        <p className="text-2xl font-bold text-gray-900">{value}</p>
-        <p className="text-sm text-gray-500">{title}</p>
-        <p className="text-xs text-gray-400 mt-1">{subtitle}</p>
+        <p className={cn("text-2xl font-bold", textColor)}>{value}</p>
+        <p className={cn("text-sm", textColor, "opacity-80")}>{title}</p>
+        <p className={cn("text-xs mt-1", textColor, "opacity-60")}>{subtitle}</p>
       </div>
     </div>
   );

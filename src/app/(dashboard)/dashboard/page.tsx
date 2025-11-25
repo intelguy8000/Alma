@@ -9,7 +9,7 @@ import {
 } from "@/components/dashboard";
 import { formatCOP } from "@/lib/utils";
 
-// Mock data for scorecards
+// Mock data for scorecards with Sage/Mint palette
 const scorecardData = [
   {
     title: "Pacientes Activos",
@@ -17,7 +17,9 @@ const scorecardData = [
     subtitle: "Últimos 90 días",
     change: 12.5,
     icon: Users,
-    iconColor: "bg-blue-500",
+    iconColor: "bg-[#6B9080]",
+    bgColor: "bg-[#CCE3DE]",
+    textColor: "text-[#3D5A4C]",
   },
   {
     title: "Ventas del Mes",
@@ -25,7 +27,9 @@ const scorecardData = [
     subtitle: `vs ${formatCOP(41200000)} mes anterior`,
     change: 9.8,
     icon: DollarSign,
-    iconColor: "bg-emerald-500",
+    iconColor: "bg-[#84A98C]",
+    bgColor: "bg-[#D8E2DC]",
+    textColor: "text-[#3D5A4C]",
   },
   {
     title: "Gastos del Mes",
@@ -33,7 +37,9 @@ const scorecardData = [
     subtitle: `vs ${formatCOP(14100000)} mes anterior`,
     change: -11.7,
     icon: Receipt,
-    iconColor: "bg-amber-500",
+    iconColor: "bg-[#D4A574]",
+    bgColor: "bg-[#F5E6D3]",
+    textColor: "text-[#8B6914]",
   },
   {
     title: "Utilidad del Mes",
@@ -41,7 +47,9 @@ const scorecardData = [
     subtitle: "Ventas - Gastos",
     change: 21.2,
     icon: TrendingUp,
-    iconColor: "bg-violet-500",
+    iconColor: "bg-[#81C784]",
+    bgColor: "bg-[#E8F5E9]",
+    textColor: "text-[#2E7D32]",
   },
 ];
 
@@ -144,8 +152,8 @@ export default function DashboardPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-[#2D3D35]">Dashboard</h1>
+        <p className="text-[#5C7A6B] mt-1">
           Resumen general del consultorio
         </p>
       </div>
@@ -161,6 +169,8 @@ export default function DashboardPage() {
             change={card.change}
             icon={card.icon}
             iconColor={card.iconColor}
+            bgColor={card.bgColor}
+            textColor={card.textColor}
           />
         ))}
       </div>
