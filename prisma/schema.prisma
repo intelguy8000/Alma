@@ -33,6 +33,7 @@ model Organization {
   providers          Provider[]
   inventoryItems     InventoryItem[]
   settings           Setting[]
+  locations          Location[]
 
   @@index([slug])
 }
@@ -295,4 +296,19 @@ model Setting {
 
   @@unique([organizationId, key])
   @@index([organizationId])
+}
+
+model Location {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  address        String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([organizationId, isActive])
 }

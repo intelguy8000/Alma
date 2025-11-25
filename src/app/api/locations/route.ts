@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-// GET /api/bank-accounts - Get all bank accounts
+// GET /api/locations - Get all locations
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -15,30 +15,25 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const includeInactive = searchParams.get("includeInactive") === "true";
 
-    const bankAccounts = await prisma.bankAccount.findMany({
+    const locations = await prisma.location.findMany({
       where: {
         organizationId: session.user.organizationId,
         ...(includeInactive ? {} : { isActive: true }),
       },
-      include: {
-        _count: {
-          select: { sales: true },
-        },
-      },
-      orderBy: { alias: "asc" },
+      orderBy: { name: "asc" },
     });
 
-    return NextResponse.json(bankAccounts);
+    return NextResponse.json(locations);
   } catch (error) {
-    console.error("Error fetching bank accounts:", error);
+    console.error("Error fetching locations:", error);
     return NextResponse.json(
-      { error: "Error al cargar cuentas bancarias" },
+      { error: "Error al cargar ubicaciones" },
       { status: 500 }
     );
   }
 }
 
-// POST /api/bank-accounts - Create new bank account
+// POST /api/locations - Create new location
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -48,29 +43,28 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { alias, accountNumber, bankName } = body;
+    const { name, address } = body;
 
-    if (!alias?.trim()) {
+    if (!name?.trim()) {
       return NextResponse.json(
-        { error: "El alias es requerido" },
+        { error: "El nombre es requerido" },
         { status: 400 }
       );
     }
 
-    const bankAccount = await prisma.bankAccount.create({
+    const location = await prisma.location.create({
       data: {
         organizationId: session.user.organizationId,
-        alias: alias.trim(),
-        accountNumber: accountNumber?.trim() || null,
-        bankName: bankName?.trim() || null,
+        name: name.trim(),
+        address: address?.trim() || null,
       },
     });
 
-    return NextResponse.json(bankAccount, { status: 201 });
+    return NextResponse.json(location, { status: 201 });
   } catch (error) {
-    console.error("Error creating bank account:", error);
+    console.error("Error creating location:", error);
     return NextResponse.json(
-      { error: "Error al crear cuenta bancaria" },
+      { error: "Error al crear ubicación" },
       { status: 500 }
     );
   }
