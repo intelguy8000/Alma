@@ -29,8 +29,10 @@ export interface Appointment {
   date: Date;
   startTime: string;
   endTime: string;
+  patientId?: string;
   patientName: string;
   patientPhone: string;
+  patientWhatsapp?: string;
   type: "presencial" | "virtual" | "terapia_choque";
   location: string;
   locationLabel: string;

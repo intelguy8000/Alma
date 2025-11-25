@@ -16,6 +16,7 @@ async function main() {
   await prisma.appointment.deleteMany();
   await prisma.patient.deleteMany();
   await prisma.bankAccount.deleteMany();
+  await prisma.location.deleteMany();
   await prisma.setting.deleteMany();
   await prisma.user.deleteMany();
   await prisma.organization.deleteMany();
@@ -140,6 +141,36 @@ async function main() {
 
   console.log("✅ Created bank account:", bankAccount.alias);
 
+  // Create Locations
+  const locationForum = await prisma.location.create({
+    data: {
+      organizationId: organization.id,
+      name: "Forum 1103",
+      address: "Calle 7 Sur #42-70, Torre 2 Oficina 1103, Forum",
+      isActive: true,
+    },
+  });
+
+  const locationLaCeja = await prisma.location.create({
+    data: {
+      organizationId: organization.id,
+      name: "La Ceja",
+      address: "La Ceja, Antioquia",
+      isActive: true,
+    },
+  });
+
+  const locationVirtual = await prisma.location.create({
+    data: {
+      organizationId: organization.id,
+      name: "Virtual",
+      address: "Sesión virtual por videollamada",
+      isActive: true,
+    },
+  });
+
+  console.log("✅ Created locations: Forum 1103, La Ceja, Virtual");
+
   // Helper to create date with time
   const createDateTime = (daysOffset: number, hour: number, minute: number = 0) => {
     const date = daysOffset >= 0 ? addDays(new Date(), daysOffset) : subDays(new Date(), Math.abs(daysOffset));
@@ -157,7 +188,7 @@ async function main() {
         startTime: createDateTime(-6, 9),
         endTime: createDateTime(-6, 10),
         type: "presencial",
-        location: "Forum 1103",
+        location: locationForum.id,
         status: "completada",
         notes: "Primera consulta - Muy buena sesión",
       },
@@ -170,7 +201,7 @@ async function main() {
         startTime: createDateTime(-5, 10),
         endTime: createDateTime(-5, 11),
         type: "virtual",
-        location: "Virtual",
+        location: locationVirtual.id,
         status: "completada",
         notes: "Seguimiento quincenal",
       },
@@ -183,7 +214,7 @@ async function main() {
         startTime: createDateTime(-4, 14),
         endTime: createDateTime(-4, 15),
         type: "terapia_choque",
-        location: "La Ceja",
+        location: locationLaCeja.id,
         status: "completada",
         notes: "Terapia de choque exitosa",
       },
@@ -196,7 +227,7 @@ async function main() {
         startTime: createDateTime(-3, 11),
         endTime: createDateTime(-3, 12),
         type: "presencial",
-        location: "Forum 1103",
+        location: locationForum.id,
         status: "completada",
         notes: "",
       },
@@ -209,7 +240,7 @@ async function main() {
         startTime: createDateTime(-2, 16),
         endTime: createDateTime(-2, 17),
         type: "presencial",
-        location: "Forum 1103",
+        location: locationForum.id,
         status: "completada",
         notes: "Paciente nuevo - muy receptiva",
       },
@@ -223,7 +254,7 @@ async function main() {
         startTime: createDateTime(-1, 9),
         endTime: createDateTime(-1, 10),
         type: "virtual",
-        location: "Virtual",
+        location: locationVirtual.id,
         status: "cancelada",
         notes: "Canceló por viaje de trabajo",
       },
@@ -236,7 +267,7 @@ async function main() {
         startTime: createDateTime(0, 15),
         endTime: createDateTime(0, 16),
         type: "presencial",
-        location: "Forum 1103",
+        location: locationForum.id,
         status: "confirmada",
         notes: "",
       },
@@ -250,7 +281,7 @@ async function main() {
         startTime: createDateTime(1, 10),
         endTime: createDateTime(1, 11),
         type: "presencial",
-        location: "Forum 1103",
+        location: locationForum.id,
         status: "confirmada",
         notes: "Segunda sesión de terapia",
       },
@@ -263,7 +294,7 @@ async function main() {
         startTime: createDateTime(2, 14),
         endTime: createDateTime(2, 15),
         type: "virtual",
-        location: "Virtual",
+        location: locationVirtual.id,
         status: "no_responde",
         notes: "Llamar para confirmar",
       },
@@ -276,7 +307,7 @@ async function main() {
         startTime: createDateTime(3, 11),
         endTime: createDateTime(3, 12),
         type: "terapia_choque",
-        location: "La Ceja",
+        location: locationLaCeja.id,
         status: "confirmada",
         notes: "Primera terapia de choque",
       },

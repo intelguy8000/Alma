@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { format, startOfMonth, endOfMonth, addHours } from "date-fns";
+import { useState, useEffect, useCallback } from "react";
+import { format, startOfMonth, endOfMonth } from "date-fns";
 import {
   CalendarDays,
   CheckCircle,
@@ -19,122 +19,62 @@ import {
 import type { Appointment } from "@/components/citas";
 import { AppointmentModal, AppointmentData } from "@/components/calendar";
 
-// Mock appointments data
-const initialAppointments: Appointment[] = [
-  {
-    id: "1",
-    date: new Date(),
-    startTime: "09:00",
-    endTime: "10:00",
-    patientName: "María García López",
-    patientPhone: "+57 300 123 4567",
-    type: "presencial",
-    location: "forum_1103",
-    locationLabel: "Forum 1103",
-    status: "confirmada",
-    notes: "Primera consulta",
-  },
-  {
-    id: "2",
-    date: new Date(),
-    startTime: "11:00",
-    endTime: "12:00",
-    patientName: "Carlos Rodríguez",
-    patientPhone: "+57 301 234 5678",
-    type: "virtual",
-    location: "virtual",
-    locationLabel: "Virtual",
-    status: "confirmada",
-    notes: "",
-  },
-  {
-    id: "3",
-    date: new Date(),
-    startTime: "14:00",
-    endTime: "15:00",
-    patientName: "Ana Martínez",
-    patientPhone: "+57 302 345 6789",
-    type: "terapia_choque",
-    location: "la_ceja",
-    locationLabel: "La Ceja",
-    status: "no_responde",
-    notes: "Llamar para confirmar",
-  },
-  {
-    id: "4",
-    date: new Date(),
-    startTime: "16:00",
-    endTime: "17:00",
-    patientName: "José Hernández",
-    patientPhone: "+57 303 456 7890",
-    type: "presencial",
-    location: "forum_1103",
-    locationLabel: "Forum 1103",
-    status: "cancelada",
-    notes: "Canceló por viaje",
-  },
-  {
-    id: "5",
-    date: addHours(new Date(), 24),
-    startTime: "10:00",
-    endTime: "11:00",
-    patientName: "Laura Sánchez Pérez",
-    patientPhone: "+57 304 567 8901",
-    type: "presencial",
-    location: "forum_1103",
-    locationLabel: "Forum 1103",
-    status: "confirmada",
-    notes: "",
-  },
-  {
-    id: "6",
-    date: addHours(new Date(), 24),
-    startTime: "15:00",
-    endTime: "16:00",
-    patientName: "Pedro González",
-    patientPhone: "+57 305 678 9012",
-    type: "virtual",
-    location: "virtual",
-    locationLabel: "Virtual",
-    status: "completada",
-    notes: "Sesión de seguimiento",
-  },
-  {
-    id: "7",
-    date: addHours(new Date(), 48),
-    startTime: "09:00",
-    endTime: "10:00",
-    patientName: "Sofía Ramírez",
-    patientPhone: "+57 306 789 0123",
-    type: "presencial",
-    location: "la_ceja",
-    locationLabel: "La Ceja",
-    status: "confirmada",
-    notes: "",
-  },
-  {
-    id: "8",
-    date: addHours(new Date(), 72),
-    startTime: "11:00",
-    endTime: "12:00",
-    patientName: "Miguel Torres",
-    patientPhone: "+57 307 890 1234",
-    type: "terapia_choque",
-    location: "forum_1103",
-    locationLabel: "Forum 1103",
-    status: "reagendada",
-    notes: "Reagendada desde la semana pasada",
-  },
-];
+interface APIAppointment {
+  id: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  type: "presencial" | "virtual" | "terapia_choque";
+  location: string | null;
+  status: "confirmada" | "no_responde" | "cancelada" | "reagendada" | "completada";
+  notes: string | null;
+  patient: {
+    id: string;
+    fullName: string;
+    patientCode: string;
+    phone: string | null;
+    whatsapp: string | null;
+  };
+}
 
-const locationMap: Record<string, string> = {
-  forum_1103: "Forum 1103",
-  la_ceja: "La Ceja",
-  virtual: "Virtual",
+interface Location {
+  id: string;
+  name: string;
+  isActive: boolean;
+}
+
+// Parse time from API format
+const parseTime = (timeStr: string): string => {
+  if (timeStr.includes("T")) {
+    return timeStr.split("T")[1].substring(0, 5);
+  }
+  return timeStr.substring(0, 5);
+};
+
+// Convert API appointment to component format
+const apiToAppointment = (apt: APIAppointment, locations: Location[]): Appointment => {
+  const location = locations.find(l => l.id === apt.location);
+  return {
+    id: apt.id,
+    date: new Date(apt.date),
+    startTime: parseTime(apt.startTime),
+    endTime: parseTime(apt.endTime),
+    patientId: apt.patient.id,
+    patientName: apt.patient.fullName,
+    patientPhone: apt.patient.phone || apt.patient.whatsapp || "",
+    patientWhatsapp: apt.patient.whatsapp || "",
+    type: apt.type,
+    location: apt.location || "",
+    locationLabel: location?.name || apt.location || "",
+    status: apt.status,
+    notes: apt.notes || "",
+  };
 };
 
 export default function CitasPage() {
-  const [appointments, setAppointments] = useState<Appointment[]>(initialAppointments);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState({
     dateFrom: format(startOfMonth(new Date()), "yyyy-MM-dd"),
     dateTo: format(endOfMonth(new Date()), "yyyy-MM-dd"),
@@ -153,29 +93,66 @@ export default function CitasPage() {
   const [completeModalOpen, setCompleteModalOpen] = useState(false);
   const [completeTarget, setCompleteTarget] = useState<Appointment | null>(null);
 
-  // Filter appointments
-  const filteredAppointments = useMemo(() => {
-    return appointments.filter((apt) => {
-      const aptDate = format(apt.date, "yyyy-MM-dd");
-      const matchesDateFrom = !filters.dateFrom || aptDate >= filters.dateFrom;
-      const matchesDateTo = !filters.dateTo || aptDate <= filters.dateTo;
-      const matchesStatus = filters.status === "todos" || apt.status === filters.status;
-      const matchesType = filters.type === "todos" || apt.type === filters.type;
+  // Fetch locations
+  const fetchLocations = useCallback(async () => {
+    try {
+      const response = await fetch("/api/locations");
+      if (response.ok) {
+        const data = await response.json();
+        setLocations(data);
+      }
+    } catch (error) {
+      console.error("Error fetching locations:", error);
+    }
+  }, []);
 
-      return matchesDateFrom && matchesDateTo && matchesStatus && matchesType;
-    });
-  }, [appointments, filters]);
+  // Fetch appointments from API
+  const fetchAppointments = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (filters.dateFrom) params.append("startDate", filters.dateFrom);
+      if (filters.dateTo) params.append("endDate", filters.dateTo);
+      if (filters.status !== "todos") params.append("status", filters.status);
+      if (filters.type !== "todos") params.append("type", filters.type);
 
-  // Calculate scorecards
-  const scorecards = useMemo(() => {
-    const total = filteredAppointments.length;
-    const confirmadas = filteredAppointments.filter((a) => a.status === "confirmada").length;
-    const canceladas = filteredAppointments.filter((a) => a.status === "cancelada").length;
-    const completadas = filteredAppointments.filter((a) => a.status === "completada").length;
-    const asistencia = total > 0 ? Math.round(((completadas + confirmadas) / total) * 100) : 0;
+      const response = await fetch(`/api/appointments?${params.toString()}`);
+      if (response.ok) {
+        const data: APIAppointment[] = await response.json();
+        const converted = data.map(apt => apiToAppointment(apt, locations));
+        setAppointments(converted);
+      }
+    } catch (error) {
+      console.error("Error fetching appointments:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [filters, locations]);
 
-    return { total, confirmadas, canceladas, asistencia };
-  }, [filteredAppointments]);
+  useEffect(() => {
+    fetchLocations();
+  }, [fetchLocations]);
+
+  useEffect(() => {
+    if (locations.length > 0 || !isLoading) {
+      fetchAppointments();
+    }
+  }, [fetchAppointments, locations.length, isLoading]);
+
+  // Calculate scorecards from current data
+  const scorecards = {
+    total: appointments.length,
+    confirmadas: appointments.filter((a) => a.status === "confirmada").length,
+    canceladas: appointments.filter((a) => a.status === "cancelada").length,
+    asistencia: appointments.length > 0
+      ? Math.round(
+          ((appointments.filter((a) => a.status === "completada").length +
+            appointments.filter((a) => a.status === "confirmada").length) /
+            appointments.length) *
+            100
+        )
+      : 0,
+  };
 
   // Handlers
   const handleNewAppointment = () => {
@@ -187,7 +164,7 @@ export default function CitasPage() {
   const handleEdit = (appointment: Appointment) => {
     setSelectedAppointment({
       id: appointment.id,
-      patientId: "1", // Would come from real data
+      patientId: appointment.patientId,
       patientName: appointment.patientName,
       date: appointment.date,
       startTime: appointment.startTime,
@@ -211,96 +188,162 @@ export default function CitasPage() {
     setRescheduleModalOpen(true);
   };
 
-  const handleStatusChange = (id: string, newStatus: Appointment["status"]) => {
-    setAppointments((prev) =>
-      prev.map((apt) => (apt.id === id ? { ...apt, status: newStatus } : apt))
-    );
-  };
+  const handleStatusChange = async (id: string, newStatus: Appointment["status"]) => {
+    try {
+      const response = await fetch(`/api/appointments/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
 
-  const handleSaveAppointment = (data: AppointmentData) => {
-    if (appointmentModalMode === "create") {
-      const newAppointment: Appointment = {
-        id: Date.now().toString(),
-        date: data.date,
-        startTime: data.startTime,
-        endTime: data.endTime,
-        patientName: data.patientName,
-        patientPhone: "",
-        type: data.type,
-        location: data.location,
-        locationLabel: locationMap[data.location] || data.location,
-        status: data.status,
-        notes: data.notes,
-      };
-      setAppointments((prev) => [...prev, newAppointment]);
-    } else if (data.id) {
-      setAppointments((prev) =>
-        prev.map((apt) =>
-          apt.id === data.id
-            ? {
-                ...apt,
-                date: data.date,
-                startTime: data.startTime,
-                endTime: data.endTime,
-                patientName: data.patientName,
-                type: data.type,
-                location: data.location,
-                locationLabel: locationMap[data.location] || data.location,
-                status: data.status,
-                notes: data.notes,
-              }
-            : apt
-        )
-      );
+      if (response.ok) {
+        fetchAppointments();
+      }
+    } catch (error) {
+      console.error("Error updating status:", error);
     }
   };
 
-  const handleConfirmReschedule = (newDate: Date, newTime: string) => {
+  const handleSaveAppointment = async (data: AppointmentData) => {
+    try {
+      if (appointmentModalMode === "create") {
+        const response = await fetch("/api/appointments", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            patientId: data.patientId,
+            date: format(data.date, "yyyy-MM-dd"),
+            startTime: data.startTime,
+            endTime: data.endTime,
+            type: data.type,
+            location: data.location,
+            status: data.status,
+            notes: data.notes,
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          alert(error.error || "Error al crear cita");
+          return;
+        }
+      } else if (data.id) {
+        const response = await fetch(`/api/appointments/${data.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            patientId: data.patientId,
+            date: format(data.date, "yyyy-MM-dd"),
+            startTime: data.startTime,
+            endTime: data.endTime,
+            type: data.type,
+            location: data.location,
+            status: data.status,
+            notes: data.notes,
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          alert(error.error || "Error al actualizar cita");
+          return;
+        }
+      }
+
+      fetchAppointments();
+      setAppointmentModalOpen(false);
+    } catch (error) {
+      console.error("Error saving appointment:", error);
+      alert("Error al guardar cita");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await fetch(`/api/appointments/${id}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        fetchAppointments();
+      }
+    } catch (error) {
+      console.error("Error deleting appointment:", error);
+    }
+  };
+
+  const handleConfirmReschedule = async (newDate: Date, newTime: string) => {
     if (!rescheduleTarget) return;
 
-    // Mark old appointment as rescheduled
-    setAppointments((prev) =>
-      prev.map((apt) =>
-        apt.id === rescheduleTarget.id ? { ...apt, status: "reagendada" as const } : apt
-      )
-    );
+    try {
+      // Mark old appointment as rescheduled
+      await fetch(`/api/appointments/${rescheduleTarget.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "reagendada" }),
+      });
 
-    // Create new appointment
-    const [hours, minutes] = newTime.split(":").map(Number);
-    const endHours = hours + 1;
-    const newAppointment: Appointment = {
-      id: Date.now().toString(),
-      date: newDate,
-      startTime: newTime,
-      endTime: `${endHours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`,
-      patientName: rescheduleTarget.patientName,
-      patientPhone: rescheduleTarget.patientPhone,
-      type: rescheduleTarget.type,
-      location: rescheduleTarget.location,
-      locationLabel: rescheduleTarget.locationLabel,
-      status: "confirmada",
-      notes: `Reagendada desde ${format(rescheduleTarget.date, "dd/MM/yyyy")}`,
-    };
+      // Create new appointment
+      const [hours, minutes] = newTime.split(":").map(Number);
+      const endHours = hours + 1;
+      const endTime = `${endHours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
 
-    setAppointments((prev) => [...prev, newAppointment]);
-    setRescheduleTarget(null);
+      await fetch("/api/appointments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patientId: rescheduleTarget.patientId,
+          date: format(newDate, "yyyy-MM-dd"),
+          startTime: newTime,
+          endTime: endTime,
+          type: rescheduleTarget.type,
+          location: rescheduleTarget.location,
+          status: "confirmada",
+          notes: `Reagendada desde ${format(rescheduleTarget.date, "dd/MM/yyyy")}`,
+        }),
+      });
+
+      fetchAppointments();
+      setRescheduleTarget(null);
+      setRescheduleModalOpen(false);
+    } catch (error) {
+      console.error("Error rescheduling:", error);
+      alert("Error al reagendar cita");
+    }
   };
 
-  const handleConfirmComplete = (registerPayment: boolean, paymentData?: { amount: string; method: string; note: string }) => {
+  const handleConfirmComplete = async (registerPayment: boolean, paymentData?: { amount: string; method: string; note: string }) => {
     if (!completeTarget) return;
 
-    setAppointments((prev) =>
-      prev.map((apt) =>
-        apt.id === completeTarget.id ? { ...apt, status: "completada" as const } : apt
-      )
-    );
+    try {
+      // Mark as completed
+      await fetch(`/api/appointments/${completeTarget.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "completada" }),
+      });
 
-    if (registerPayment && paymentData) {
-      // Would save to database in real app
-      console.log("Payment registered:", paymentData);
+      // Register payment if requested
+      if (registerPayment && paymentData) {
+        await fetch("/api/sales", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            appointmentId: completeTarget.id,
+            amount: parseFloat(paymentData.amount.replace(/[^0-9.-]+/g, "")),
+            paymentMethod: paymentData.method,
+            notes: paymentData.note,
+          }),
+        });
+      }
+
+      fetchAppointments();
+      setCompleteTarget(null);
+      setCompleteModalOpen(false);
+    } catch (error) {
+      console.error("Error completing appointment:", error);
+      alert("Error al completar cita");
     }
-
-    setCompleteTarget(null);
   };
 
   return (
@@ -325,8 +368,7 @@ export default function CitasPage() {
         <Scorecard
           title="Total Citas"
           value={scorecards.total.toString()}
-          subtitle="Este mes"
-          change={12}
+          subtitle="En el período"
           icon={CalendarDays}
           iconColor="bg-blue-500"
         />
@@ -334,15 +376,13 @@ export default function CitasPage() {
           title="Confirmadas"
           value={scorecards.confirmadas.toString()}
           subtitle="Pendientes de atender"
-          change={8}
           icon={CheckCircle}
           iconColor="bg-emerald-500"
         />
         <Scorecard
           title="Canceladas"
           value={scorecards.canceladas.toString()}
-          subtitle="Este mes"
-          change={-15}
+          subtitle="En el período"
           icon={XCircle}
           iconColor="bg-red-500"
         />
@@ -350,7 +390,6 @@ export default function CitasPage() {
           title="Tasa Asistencia"
           value={`${scorecards.asistencia}%`}
           subtitle="Confirmadas + Completadas"
-          change={5}
           icon={Percent}
           iconColor="bg-violet-500"
         />
@@ -360,19 +399,28 @@ export default function CitasPage() {
       <AppointmentFilters filters={filters} onFiltersChange={setFilters} />
 
       {/* Table */}
-      <AppointmentsTable
-        appointments={filteredAppointments}
-        onEdit={handleEdit}
-        onComplete={handleComplete}
-        onReschedule={handleReschedule}
-        onStatusChange={handleStatusChange}
-      />
+      {isLoading ? (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+          <div className="flex items-center justify-center">
+            <div className="text-gray-500">Cargando citas...</div>
+          </div>
+        </div>
+      ) : (
+        <AppointmentsTable
+          appointments={appointments}
+          onEdit={handleEdit}
+          onComplete={handleComplete}
+          onReschedule={handleReschedule}
+          onStatusChange={handleStatusChange}
+        />
+      )}
 
       {/* Modals */}
       <AppointmentModal
         isOpen={appointmentModalOpen}
         onClose={() => setAppointmentModalOpen(false)}
         onSave={handleSaveAppointment}
+        onDelete={handleDelete}
         initialData={selectedAppointment}
         mode={appointmentModalMode}
       />

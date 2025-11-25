@@ -9,7 +9,7 @@ import {
   UpcomingAppointments,
 } from "@/components/dashboard";
 import { formatCOP } from "@/lib/utils";
-import { format, subDays, startOfYear, startOfMonth, subMonths } from "date-fns";
+import { format, subDays, startOfYear, subMonths } from "date-fns";
 import { es } from "date-fns/locale";
 
 interface DashboardData {
@@ -59,49 +59,6 @@ const presetRanges = [
   { label: "Personalizado", value: "custom" },
 ];
 
-// Mock data generator based on date range
-function getMockData(range: string): DashboardData {
-  // This would be replaced with actual API calls
-  const multiplier = range === "7d" ? 0.25 : range === "30d" ? 1 : range === "90d" ? 3 : 12;
-
-  return {
-    activePatients: Math.round(248 * (range === "7d" ? 0.3 : range === "30d" ? 0.6 : range === "90d" ? 1 : 1.2)),
-    activePatientsChange: 12.5,
-    totalSales: Math.round(45231000 * multiplier),
-    previousSales: Math.round(41200000 * multiplier),
-    salesChange: 9.8,
-    totalExpenses: Math.round(12450000 * multiplier),
-    previousExpenses: Math.round(14100000 * multiplier),
-    expensesChange: -11.7,
-    profit: Math.round((45231000 - 12450000) * multiplier),
-    profitChange: 21.2,
-    appointmentsData: [
-      { name: "Sem 1", presenciales: 45, virtuales: 20, nuevos: 12, antiguos: 53, terapiaChoque: 8 },
-      { name: "Sem 2", presenciales: 52, virtuales: 25, nuevos: 15, antiguos: 62, terapiaChoque: 10 },
-      { name: "Sem 3", presenciales: 48, virtuales: 28, nuevos: 10, antiguos: 66, terapiaChoque: 6 },
-      { name: "Sem 4", presenciales: 55, virtuales: 30, nuevos: 18, antiguos: 67, terapiaChoque: 12 },
-    ],
-    patientsData: [
-      { day: "Lun", atendidos: 12, cancelados: 2 },
-      { day: "Mar", atendidos: 15, cancelados: 1 },
-      { day: "Mié", atendidos: 18, cancelados: 3 },
-      { day: "Jue", atendidos: 14, cancelados: 2 },
-      { day: "Vie", atendidos: 20, cancelados: 1 },
-      { day: "Sáb", atendidos: 8, cancelados: 0 },
-      { day: "Dom", atendidos: 0, cancelados: 0 },
-      { day: "Mañana", atendidos: 16, cancelados: 0, proyeccion: 16 },
-    ],
-    upcomingAppointments: [
-      { id: "1", time: "09:00", patient: "María García López", type: "presencial", status: "confirmada" },
-      { id: "2", time: "10:00", patient: "Carlos Rodríguez", type: "virtual", status: "confirmada" },
-      { id: "3", time: "11:30", patient: "Ana Martínez", type: "terapia_choque", status: "no_responde" },
-      { id: "4", time: "14:00", patient: "José Hernández", type: "presencial", status: "confirmada" },
-      { id: "5", time: "15:30", patient: "Laura Sánchez Pérez", type: "virtual", status: "confirmada" },
-      { id: "6", time: "17:00", patient: "Pedro González", type: "presencial", status: "reagendada" },
-    ],
-  };
-}
-
 // Helper to get dates from preset
 function getDateRangeFromPreset(preset: string): DateRange {
   const today = new Date();
@@ -142,10 +99,26 @@ export default function DashboardPage() {
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 300));
-    setData(getMockData(selectedPreset));
-    setIsLoading(false);
+    try {
+      const params = new URLSearchParams();
+
+      if (selectedPreset === "custom") {
+        params.append("startDate", format(dateRange.startDate, "yyyy-MM-dd"));
+        params.append("endDate", format(dateRange.endDate, "yyyy-MM-dd"));
+      } else {
+        params.append("range", selectedPreset);
+      }
+
+      const response = await fetch(`/api/dashboard?${params.toString()}`);
+      if (response.ok) {
+        const dashboardData = await response.json();
+        setData(dashboardData);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [selectedPreset, dateRange]);
 
   useEffect(() => {
