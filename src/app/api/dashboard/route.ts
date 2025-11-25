@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { startOfDay, endOfDay, subDays, startOfYear, subMonths, format, startOfWeek, endOfWeek, addDays } from "date-fns";
+import { isRealModeEnabled, getPatientIdsWithInvoice } from "@/lib/realMode";
+import { startOfDay, endOfDay, subDays, startOfYear, subMonths, format, startOfWeek, addDays } from "date-fns";
 
 // GET /api/dashboard - Get dashboard statistics
 export async function GET(request: NextRequest) {
@@ -19,6 +20,14 @@ export async function GET(request: NextRequest) {
 
     const organizationId = session.user.organizationId;
     const now = new Date();
+
+    // Check if real mode is enabled
+    const realModeActive = await isRealModeEnabled(organizationId);
+    let allowedPatientIds: string[] | null = null;
+
+    if (realModeActive) {
+      allowedPatientIds = await getPatientIdsWithInvoice(organizationId);
+    }
 
     // Calculate date range
     let startDate: Date;
@@ -60,6 +69,7 @@ export async function GET(request: NextRequest) {
     const activePatients = await prisma.patient.count({
       where: {
         organizationId,
+        ...(realModeActive && allowedPatientIds && { id: { in: allowedPatientIds } }),
         appointments: {
           some: {
             date: {
@@ -78,6 +88,7 @@ export async function GET(request: NextRequest) {
     const previousActivePatients = await prisma.patient.count({
       where: {
         organizationId,
+        ...(realModeActive && allowedPatientIds && { id: { in: allowedPatientIds } }),
         appointments: {
           some: {
             date: {
@@ -96,6 +107,7 @@ export async function GET(request: NextRequest) {
     const sales = await prisma.sale.aggregate({
       where: {
         organizationId,
+        ...(realModeActive && { hasElectronicInvoice: true }),
         date: {
           gte: startDate,
           lte: endDate,
@@ -111,6 +123,7 @@ export async function GET(request: NextRequest) {
     const previousSalesResult = await prisma.sale.aggregate({
       where: {
         organizationId,
+        ...(realModeActive && { hasElectronicInvoice: true }),
         date: {
           gte: previousStartDate,
           lte: previousEndDate,
@@ -171,6 +184,7 @@ export async function GET(request: NextRequest) {
     const appointments = await prisma.appointment.findMany({
       where: {
         organizationId,
+        ...(realModeActive && allowedPatientIds && { patientId: { in: allowedPatientIds } }),
         date: {
           gte: startDate,
           lte: endDate,
@@ -250,6 +264,7 @@ export async function GET(request: NextRequest) {
         const attended = await prisma.appointment.count({
           where: {
             organizationId,
+            ...(realModeActive && allowedPatientIds && { patientId: { in: allowedPatientIds } }),
             date: {
               gte: dayStart,
               lte: dayEnd,
@@ -261,6 +276,7 @@ export async function GET(request: NextRequest) {
         const cancelled = await prisma.appointment.count({
           where: {
             organizationId,
+            ...(realModeActive && allowedPatientIds && { patientId: { in: allowedPatientIds } }),
             date: {
               gte: dayStart,
               lte: dayEnd,
@@ -272,6 +288,7 @@ export async function GET(request: NextRequest) {
         const scheduled = await prisma.appointment.count({
           where: {
             organizationId,
+            ...(realModeActive && allowedPatientIds && { patientId: { in: allowedPatientIds } }),
             date: {
               gte: dayStart,
               lte: dayEnd,
@@ -296,6 +313,7 @@ export async function GET(request: NextRequest) {
     const upcomingAppointmentsRaw = await prisma.appointment.findMany({
       where: {
         organizationId,
+        ...(realModeActive && allowedPatientIds && { patientId: { in: allowedPatientIds } }),
         date: {
           gte: startOfDay(today),
           lte: tomorrowEnd,

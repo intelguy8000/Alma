@@ -12,6 +12,7 @@ interface SalesTableProps {
   onView: (sale: Sale) => void;
   onEdit: (sale: Sale) => void;
   onDelete: (saleId: string) => void;
+  onToggleInvoice?: (saleId: string, currentValue: boolean) => void;
   isLoading?: boolean;
 }
 
@@ -107,6 +108,7 @@ export function SalesTable({
   onView,
   onEdit,
   onDelete,
+  onToggleInvoice,
   isLoading,
 }: SalesTableProps) {
   if (isLoading) {
@@ -199,11 +201,17 @@ export function SalesTable({
                     </span>
                   </td>
                   <td className="px-4 py-3 text-center">
-                    {sale.hasElectronicInvoice ? (
-                      <FileCheck className="h-5 w-5 text-[#2E7D32] mx-auto" />
-                    ) : (
-                      <FileX className="h-5 w-5 text-[#9CA3AF] mx-auto" />
-                    )}
+                    <button
+                      onClick={() => onToggleInvoice?.(sale.id, sale.hasElectronicInvoice)}
+                      className="p-1 rounded-md hover:bg-[#CCE3DE]/50 transition-colors cursor-pointer"
+                      title={sale.hasElectronicInvoice ? "Quitar factura electrónica" : "Marcar como factura electrónica"}
+                    >
+                      {sale.hasElectronicInvoice ? (
+                        <FileCheck className="h-5 w-5 text-[#2E7D32] mx-auto" />
+                      ) : (
+                        <FileX className="h-5 w-5 text-[#9CA3AF] mx-auto" />
+                      )}
+                    </button>
                   </td>
                   <td className="px-4 py-3 text-sm text-[#5C7A6B]">
                     {sale.bankAccount ? sale.bankAccount.alias : "-"}

@@ -2,28 +2,31 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { Settings, CreditCard, MapPin, Bell, MessageSquareWarning } from "lucide-react";
+import { Settings, CreditCard, MapPin, Bell, MessageSquareWarning, Lock } from "lucide-react";
 import { GeneralSettings } from "@/components/configuracion/GeneralSettings";
 import { BankAccountsSettings } from "@/components/configuracion/BankAccountsSettings";
 import { LocationsSettings } from "@/components/configuracion/LocationsSettings";
 import { NotificationsSettings } from "@/components/configuracion/NotificationsSettings";
 import { FeedbackSettings } from "@/components/configuracion/FeedbackSettings";
+import { SafeBoxSettings } from "@/components/configuracion/SafeBoxSettings";
 import type { OrganizationSettings, BankAccount, Location, GeneralSettingsFormData } from "@/types/settings";
 import { SETTINGS_KEYS } from "@/types/settings";
 import { cn } from "@/lib/utils";
 
-type TabType = "general" | "bank_accounts" | "locations" | "notifications" | "feedback";
+type TabType = "general" | "bank_accounts" | "locations" | "notifications" | "feedback" | "safebox";
 
 const baseTabs = [
   { id: "general" as TabType, label: "General", icon: Settings },
   { id: "bank_accounts" as TabType, label: "Cuentas Bancarias", icon: CreditCard },
   { id: "locations" as TabType, label: "Ubicaciones", icon: MapPin },
   { id: "notifications" as TabType, label: "Notificaciones", icon: Bell },
+  { id: "safebox" as TabType, label: "Caja Fuerte", icon: Lock },
 ];
 
 const adminTabs = [
-  ...baseTabs,
+  ...baseTabs.slice(0, 4),
   { id: "feedback" as TabType, label: "Feedback", icon: MessageSquareWarning, adminOnly: true },
+  { id: "safebox" as TabType, label: "Caja Fuerte", icon: Lock },
 ];
 
 export default function ConfiguracionPage() {
@@ -113,6 +116,33 @@ export default function ConfiguracionPage() {
     }
   };
 
+  const handleToggleRealMode = async (enabled: boolean): Promise<boolean> => {
+    try {
+      const response = await fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          settings: {
+            [SETTINGS_KEYS.REAL_MODE]: enabled ? "true" : "false",
+          },
+        }),
+      });
+
+      if (response.ok) {
+        setSaveMessage(enabled ? "Modo Real activado" : "Modo Real desactivado");
+        setTimeout(() => setSaveMessage(null), 3000);
+        fetchSettings();
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Error toggling real mode:", error);
+      return false;
+    }
+  };
+
+  const isRealModeEnabled = settings[SETTINGS_KEYS.REAL_MODE] === "true";
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -191,6 +221,12 @@ export default function ConfiguracionPage() {
               )}
               {activeTab === "feedback" && session?.user?.role === "admin" && (
                 <FeedbackSettings />
+              )}
+              {activeTab === "safebox" && (
+                <SafeBoxSettings
+                  isRealModeEnabled={isRealModeEnabled}
+                  onToggleRealMode={handleToggleRealMode}
+                />
               )}
             </>
           )}

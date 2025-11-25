@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { isRealModeEnabled, getPatientIdsWithInvoice } from "@/lib/realMode";
 import { z } from "zod";
 
 const appointmentSchema = z.object({
@@ -31,9 +32,18 @@ export async function GET(request: NextRequest) {
     const patientId = searchParams.get("patientId");
     const search = searchParams.get("search");
 
+    // Check if real mode is enabled
+    const realModeActive = await isRealModeEnabled(session.user.organizationId);
+    let allowedPatientIds: string[] | null = null;
+
+    if (realModeActive) {
+      allowedPatientIds = await getPatientIdsWithInvoice(session.user.organizationId);
+    }
+
     // Build where clause
     const where: Record<string, unknown> = {
       organizationId: session.user.organizationId,
+      ...(realModeActive && allowedPatientIds && { patientId: { in: allowedPatientIds } }),
     };
 
     // Date range filter

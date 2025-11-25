@@ -21,8 +21,10 @@ import {
   LogOut,
   Menu,
   X,
+  Lock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useRealMode } from "@/hooks/useRealMode";
 
 interface SidebarContextType {
   isExpanded: boolean;
@@ -72,7 +74,8 @@ const menuItems = [
 function SidebarContent() {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const { isExpanded, setIsExpanded, setIsMobileOpen } = useSidebar();
+  const { isExpanded, setIsMobileOpen } = useSidebar();
+  const { isRealMode } = useRealMode();
 
   const handleLinkClick = () => {
     setIsMobileOpen(false);
@@ -96,6 +99,26 @@ function SidebarContent() {
           </span>
         </div>
       </div>
+
+      {/* Real Mode Badge */}
+      {isRealMode && (
+        <div
+          className={cn(
+            "mx-3 mt-3 flex items-center gap-2 px-3 py-2 bg-[#2E7D32]/30 rounded-lg border border-[#2E7D32]/50",
+            !isExpanded && "justify-center px-2"
+          )}
+        >
+          <Lock className="w-4 h-4 text-[#A5D6A7] flex-shrink-0" />
+          <span
+            className={cn(
+              "text-xs font-medium text-[#A5D6A7] whitespace-nowrap transition-all duration-300",
+              isExpanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"
+            )}
+          >
+            Modo Real
+          </span>
+        </div>
+      )}
 
       {/* Menu */}
       <nav className="flex-1 overflow-y-auto py-4 px-3">

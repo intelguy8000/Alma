@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { isRealModeEnabled } from "@/lib/realMode";
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,10 +16,19 @@ export async function GET(request: NextRequest) {
     const endDate = searchParams.get("endDate");
     const paymentMethod = searchParams.get("paymentMethod");
     const patientId = searchParams.get("patientId");
+    const hasElectronicInvoice = searchParams.get("hasElectronicInvoice");
+
+    // Check if real mode is enabled
+    const realModeActive = await isRealModeEnabled(session.user.organizationId);
 
     const where: Record<string, unknown> = {
       organizationId: session.user.organizationId,
     };
+
+    // If real mode is active, only show sales with electronic invoice
+    if (realModeActive) {
+      where.hasElectronicInvoice = true;
+    }
 
     if (startDate && endDate) {
       where.date = {
@@ -33,6 +43,11 @@ export async function GET(request: NextRequest) {
 
     if (paymentMethod && paymentMethod !== "all") {
       where.paymentMethod = paymentMethod;
+    }
+
+    // Only apply manual filter if real mode is not active
+    if (!realModeActive && hasElectronicInvoice && hasElectronicInvoice !== "all") {
+      where.hasElectronicInvoice = hasElectronicInvoice === "true";
     }
 
     if (patientId) {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { isRealModeEnabled, getPatientIdsWithInvoice } from "@/lib/realMode";
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,8 +15,17 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status"); // "active", "inactive", or null for all
 
+    // Check if real mode is enabled
+    const realModeActive = await isRealModeEnabled(session.user.organizationId);
+    let allowedPatientIds: string[] | null = null;
+
+    if (realModeActive) {
+      allowedPatientIds = await getPatientIdsWithInvoice(session.user.organizationId);
+    }
+
     const where = {
       organizationId: session.user.organizationId,
+      ...(realModeActive && allowedPatientIds && { id: { in: allowedPatientIds } }),
       ...(search && {
         OR: [
           { fullName: { contains: search, mode: "insensitive" as const } },
@@ -35,7 +45,9 @@ export async function GET(request: NextRequest) {
         },
         appointments: {
           include: {
-            sales: true,
+            sales: {
+              where: realModeActive ? { hasElectronicInvoice: true } : undefined,
+            },
           },
           orderBy: { date: "desc" },
         },

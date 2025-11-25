@@ -23,6 +23,7 @@ export default function VentasPage() {
     format(endOfMonth(new Date()), "yyyy-MM-dd")
   );
   const [paymentMethod, setPaymentMethod] = useState("all");
+  const [invoiceFilter, setInvoiceFilter] = useState("all");
   const [patientSearch, setPatientSearch] = useState("");
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -41,6 +42,7 @@ export default function VentasPage() {
       if (startDate) params.set("startDate", startDate);
       if (endDate) params.set("endDate", endDate);
       if (paymentMethod !== "all") params.set("paymentMethod", paymentMethod);
+      if (invoiceFilter !== "all") params.set("hasElectronicInvoice", invoiceFilter);
       if (selectedPatientId) params.set("patientId", selectedPatientId);
 
       const response = await fetch(`/api/sales?${params.toString()}`);
@@ -53,7 +55,7 @@ export default function VentasPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [startDate, endDate, paymentMethod, selectedPatientId]);
+  }, [startDate, endDate, paymentMethod, invoiceFilter, selectedPatientId]);
 
   useEffect(() => {
     fetchSales();
@@ -138,6 +140,27 @@ export default function VentasPage() {
     }
   };
 
+  const handleToggleInvoice = async (saleId: string, currentValue: boolean) => {
+    try {
+      const response = await fetch(`/api/sales/${saleId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hasElectronicInvoice: !currentValue }),
+      });
+
+      if (response.ok) {
+        // Update local state immediately for better UX
+        setSales(prev => prev.map(sale =>
+          sale.id === saleId
+            ? { ...sale, hasElectronicInvoice: !currentValue }
+            : sale
+        ));
+      }
+    } catch (error) {
+      console.error("Error toggling invoice:", error);
+    }
+  };
+
   const handleViewSale = (sale: Sale) => {
     setSelectedSale(sale);
     setIsDetailModalOpen(true);
@@ -216,7 +239,7 @@ export default function VentasPage() {
 
       {/* Filters */}
       <div className="bg-[#F6FFF8] rounded-lg border border-[#CCE3DE] p-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Date Range */}
           <div>
             <label className="block text-sm font-medium text-[#3D5A4C] mb-1">
@@ -262,6 +285,22 @@ export default function VentasPage() {
               <option value="efectivo">Efectivo</option>
               <option value="transferencia">Transferencia</option>
               <option value="otro">Otro</option>
+            </select>
+          </div>
+
+          {/* Invoice Filter */}
+          <div>
+            <label className="block text-sm font-medium text-[#3D5A4C] mb-1">
+              Factura electrónica
+            </label>
+            <select
+              value={invoiceFilter}
+              onChange={(e) => setInvoiceFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-[#CCE3DE] rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-[#6B9080] text-[#2D3D35]"
+            >
+              <option value="all">Todos</option>
+              <option value="true">Con factura</option>
+              <option value="false">Sin factura</option>
             </select>
           </div>
 
@@ -326,6 +365,7 @@ export default function VentasPage() {
         onView={handleViewSale}
         onEdit={handleEditClick}
         onDelete={handleDeleteSale}
+        onToggleInvoice={handleToggleInvoice}
         isLoading={isLoading}
       />
 

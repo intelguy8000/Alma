@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { format, subMonths, startOfMonth, endOfMonth, startOfYear } from "date-fns";
+import { isRealModeEnabled } from "@/lib/realMode";
+import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,10 +26,14 @@ export async function GET(request: NextRequest) {
     const start = new Date(startDate);
     const end = new Date(endDate);
 
+    // Check if real mode is enabled
+    const realModeActive = await isRealModeEnabled(session.user.organizationId);
+
     // Fetch sales with appointments
     const sales = await prisma.sale.findMany({
       where: {
         organizationId: session.user.organizationId,
+        ...(realModeActive && { hasElectronicInvoice: true }),
         date: {
           gte: start,
           lte: end,
@@ -97,7 +102,7 @@ export async function GET(request: NextRequest) {
     }));
 
     // Get monthly data for last 6 months
-    const monthlyData = await getMonthlyData(session.user.organizationId);
+    const monthlyData = await getMonthlyData(session.user.organizationId, realModeActive);
 
     return NextResponse.json({
       summary: {
@@ -119,7 +124,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-async function getMonthlyData(organizationId: string) {
+async function getMonthlyData(organizationId: string, realModeActive: boolean) {
   const months = [];
   const now = new Date();
 
@@ -132,6 +137,7 @@ async function getMonthlyData(organizationId: string) {
       prisma.sale.aggregate({
         where: {
           organizationId,
+          ...(realModeActive && { hasElectronicInvoice: true }),
           date: {
             gte: monthStart,
             lte: monthEnd,

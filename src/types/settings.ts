@@ -53,6 +53,7 @@ export interface LocationFormData {
 export const SETTINGS_KEYS = {
   DEFAULT_APPOINTMENT_VALUE: 'default_appointment_value',
   SESSION_TIMEOUT: 'session_timeout',
+  REAL_MODE: 'real_mode',
 } as const;
 
 export type SettingKey = typeof SETTINGS_KEYS[keyof typeof SETTINGS_KEYS];
