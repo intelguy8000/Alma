@@ -5,7 +5,8 @@ const apiKey = process.env.RESEND_API_KEY || "re_placeholder";
 
 export const resend = new Resend(apiKey);
 
-export const FROM_EMAIL = "Medicina del Alma <noreply@medicinadelinema.com>";
+// Use verified domain email or Resend's test email for development
+export const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "Medicina del Alma <onboarding@resend.dev>";
 
 interface SendPasswordResetEmailParams {
   to: string;
