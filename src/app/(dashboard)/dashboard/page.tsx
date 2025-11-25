@@ -7,6 +7,7 @@ import {
   AppointmentsBarChart,
   UpcomingAppointments,
 } from "@/components/dashboard";
+import { formatCOP } from "@/lib/utils";
 
 // Mock data for scorecards
 const scorecardData = [
@@ -20,23 +21,23 @@ const scorecardData = [
   },
   {
     title: "Ventas del Mes",
-    value: "$45,231",
-    subtitle: "vs $41,200 mes anterior",
+    value: formatCOP(45231000),
+    subtitle: `vs ${formatCOP(41200000)} mes anterior`,
     change: 9.8,
     icon: DollarSign,
     iconColor: "bg-emerald-500",
   },
   {
     title: "Gastos del Mes",
-    value: "$12,450",
-    subtitle: "vs $14,100 mes anterior",
+    value: formatCOP(12450000),
+    subtitle: `vs ${formatCOP(14100000)} mes anterior`,
     change: -11.7,
     icon: Receipt,
     iconColor: "bg-amber-500",
   },
   {
     title: "Utilidad del Mes",
-    value: "$32,781",
+    value: formatCOP(32781000),
     subtitle: "Ventas - Gastos",
     change: 21.2,
     icon: TrendingUp,

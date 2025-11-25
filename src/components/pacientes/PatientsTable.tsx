@@ -11,6 +11,7 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { formatCOP } from "@/lib/utils";
 
 interface Patient {
   id: string;
@@ -141,14 +142,6 @@ export function PatientsTable({
   onToggleActive,
   isLoading,
 }: PatientsTableProps) {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("es-CO", {
-      style: "currency",
-      currency: "COP",
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
-
   if (isLoading) {
     return (
       <div className="bg-card rounded-lg border overflow-hidden">
@@ -231,7 +224,7 @@ export function PatientsTable({
                 </td>
                 <td className="px-4 py-3 text-right">
                   <span className="font-medium text-emerald-600">
-                    {formatCurrency(patient.totalSpent)}
+                    {formatCOP(patient.totalSpent)}
                   </span>
                 </td>
                 <td className="px-4 py-3">

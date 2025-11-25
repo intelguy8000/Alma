@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Propuestas de Paleta de Colores - Medicina del Alma</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 40px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+            color: #1a1a1a;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 14px;
+        }
+
+        .proposal {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            page-break-inside: avoid;
+        }
+
+        .proposal-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .proposal-letter {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            color: white;
+        }
+
+        .proposal-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .colors-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .color-item {
+            text-align: center;
+        }
+
+        .color-swatch {
+            width: 100%;
+            height: 60px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .color-name {
+            font-size: 12px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .color-hex {
+            font-size: 11px;
+            color: #888;
+            font-family: monospace;
+        }
+
+        .scorecards-section {
+            margin-top: 20px;
+        }
+
+        .scorecards-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #555;
+        }
+
+        .scorecards-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .scorecard-preview {
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .scorecard-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            margin: 0 auto 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .scorecard-value {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .scorecard-label {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        .preview-section {
+            margin-top: 24px;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #eee;
+        }
+
+        .preview-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #555;
+        }
+
+        .preview-dashboard {
+            display: grid;
+            grid-template-columns: 180px 1fr;
+            gap: 16px;
+            min-height: 200px;
+        }
+
+        .preview-sidebar {
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .preview-content {
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .preview-menu-item {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .preview-card {
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 20px;
+            }
+            .proposal {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Propuestas de Paleta de Colores</h1>
+        <p class="subtitle">Medicina del Alma - Dashboard Pastel</p>
+
+        <!-- PROPUESTA A: Verde Menta/Sage -->
+        <div class="proposal">
+            <div class="proposal-header">
+                <div class="proposal-letter" style="background: #6B9080;">A</div>
+                <div class="proposal-title">Tonos Verde Menta / Sage</div>
+            </div>
+
+            <div class="colors-grid">
+                <div class="color-item">
+                    <div class="color-swatch" style="background: #6B9080;"></div>
+                    <div class="color-name">Primario</div>
+                    <div class="color-hex">#6B9080</div>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: #A4C3B2;"></div>
+                    <div class="color-name">Secundario</div>
+                    <div class="color-hex">#A4C3B2</div>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: #F6FFF8;"></div>
+                    <div class="color-name">Fondo Cards</div>
+                    <div class="color-hex">#F6FFF8</div>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: #EAF4F4;"></div>
+                    <div class="color-name">Fondo Pagina</div>
+                    <div class="color-hex">#EAF4F4</div>
+                </div>
+            </div>
+
+            <div class="scorecards-section">
+                <div class="scorecards-title">Colores de Scorecards</div>
+                <div class="scorecards-grid">
+                    <div class="scorecard-preview" style="background: #CCE3DE;">
+                        <div class="scorecard-icon" style="background: #6B9080; color: white;">P</div>
+                        <div class="scorecard-value" style="color: #3D5A4C;">248</div>
+                        <div class="scorecard-label" style="color: #5C7A6B;">Pacientes</div>
+                    </div>
+                    <div class="scorecard-preview" style="background: #D8E2DC;">
+                        <div class="scorecard-icon" style="background: #84A98C; color: white;">$</div>
+                        <div class="scorecard-value" style="color: #3D5A4C;">$45.231.000</div>
+                        <div class="scorecard-label" style="color: #5C7A6B;">Ventas</div>
+                    </div>
+                    <div class="scorecard-preview" style="background: #F5E6D3;">
+                        <div class="scorecard-icon" style="background: #D4A574; color: white;">G</div>
+                        <div class="scorecard-value" style="color: #8B6914;">$12.450.000</div>
+                        <div class="scorecard-label" style="color: #A68B5B;">Gastos</div>
+                    </div>
+                    <div class="scorecard-preview" style="background: #E8F5E9;">
+                        <div class="scorecard-icon" style="background: #81C784; color: white;">U</div>
+                        <div class="scorecard-value" style="color: #2E7D32;">$32.781.000</div>
+                        <div class="scorecard-label" style="color: #4CAF50;">Utilidad</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="preview-section">
+                <div class="preview-title">Vista Previa del Dashboard</div>
+                <div class="preview-dashboard">
+                    <div class="preview-sidebar" style="background: #6B9080;">
+                        <div class="preview-menu-item" style="background: rgba(255,255,255,0.2); color: white;">Dashboard</div>
+                        <div class="preview-menu-item" style="color: rgba(255,255,255,0.8);">Calendario</div>
+                        <div class="preview-menu-item" style="color: rgba(255,255,255,0.8);">Pacientes</div>
+                        <div class="preview-menu-item" style="color: rgba(255,255,255,0.8);">Ventas</div>
+                    </div>
+                    <div class="preview-content" style="background: #EAF4F4;">
+                        <div class="preview-card" style="background: #F6FFF8; border: 1px solid #CCE3DE;">
+                            <div style="font-weight: 600; color: #3D5A4C; margin-bottom: 8px;">Scorecards</div>
+                            <div style="display: flex; gap: 8px;">
+                                <div style="flex: 1; background: #CCE3DE; padding: 8px; border-radius: 6px; text-align: center; font-size: 11px; color: #3D5A4C;">248</div>
+                                <div style="flex: 1; background: #D8E2DC; padding: 8px; border-radius: 6px; text-align: center; font-size: 11px; color: #3D5A4C;">$45M</div>
+                                <div style="flex: 1; background: #F5E6D3; padding: 8px; border-radius: 6px; text-align: center; font-size: 11px; color: #8B6914;">$12M</div>
+                                <div style="flex: 1; background: #E8F5E9; padding: 8px; border-radius: 6px; text-align: center; font-size: 11px; color: #2E7D32;">$32M</div>
+                            </div>
+                        </div>
+                        <div class="preview-card" style="background: #F6FFF8; border: 1px solid #CCE3DE;">
+                            <div style="font-weight: 600; color: #3D5A4C;">Grafico de Pacientes</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROPUESTA B: Azul Cielo/Lavanda -->
+        <div class="proposal">
+            <div class="proposal-header">
+                <div class="proposal-letter" style="background: #7B9ACC;">B</div>
+                <div class="proposal-title">Tonos Azul Cielo / Lavanda</div>
+            </div>
+
+            <div class="colors-grid">
+                <div class="color-item">
+                    <div class="color-swatch" style="background: #7B9ACC;"></div>
+                    <div class="color-name">Primario</div>
+                    <div class="color-hex">#7B9ACC</div>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: #B8C5D6;"></div>
+                    <div class="color-name">Secundario</div>
+                    <div class="color-hex">#B8C5D6</div>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: #FAFBFF;"></div>
+                    <div class="color-name">Fondo Cards</div>
+                    <div class="color-hex">#FAFBFF</div>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: #EEF2F7;"></div>
+                    <div class="color-name">Fondo Pagina</div>
+                    <div class="color-hex">#EEF2F7</div>
+                </div>
+            </div>
+
+            <div class="scorecards-section">
+                <div class="scorecards-title">Colores de Scorecards</div>
+                <div class="scorecards-grid">
+                    <div class="scorecard-preview" style="background: #D4E5F7;">
+                        <div class="scorecard-icon" style="background: #5B8BD0; color: white;">P</div>
+                        <div class="scorecard-value" style="color: #2C5282;">248</div>
+                        <div class="scorecard-label" style="color: #4A6FA5;">Pacientes</div>
+                    </div>
+                    <div class="scorecard-preview" style="background: #E8D5F2;">
+                        <div class="scorecard-icon" style="background: #9B7BB8; color: white;">$</div>
+                        <div class="scorecard-value" style="color: #5B3F7A;">$45.231.000</div>
+                        <div class="scorecard-label" style="color: #7B5D9A;">Ventas</div>
+                    </div>
+                    <div class="scorecard-preview" style="background: #FFE4D6;">
+                        <div class="scorecard-icon" style="background: #E8937A; color: white;">G</div>
+                        <div class="scorecard-value" style="color: #C65D3B;">$12.450.000</div>
+                        <div class="scorecard-label" style="color: #D4775A;">Gastos</div>
+                    </div>
+                    <div class="scorecard-preview" style="background: #D5F0E3;">
+                        <div class="scorecard-icon" style="background: #5BB38A; color: white;">U</div>
+                        <div class="scorecard-value" style="color: #1D6F4A;">$32.781.000</div>
+                        <div class="scorecard-label" style="color: #3D9B6A;">Utilidad</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="preview-section">
+                <div class="preview-title">Vista Previa del Dashboard</div>
+                <div class="preview-dashboard">
+                    <div class="preview-sidebar" style="background: #7B9ACC;">
+                        <div class="preview-menu-item" style="background: rgba(255,255,255,0.2); color: white;">Dashboard</div>
+                        <div class="preview-menu-item" style="color: rgba(255,255,255,0.8);">Calendario</div>
+                        <div class="preview-menu-item" style="color: rgba(255,255,255,0.8);">Pacientes</div>
+                        <div class="preview-menu-item" style="color: rgba(255,255,255,0.8);">Ventas</div>
+                    </div>
+                    <div class="preview-content" style="background: #EEF2F7;">
+                        <div class="preview-card" style="background: #FAFBFF; border: 1px solid #D4E5F7;">
+                            <div style="font-weight: 600; color: #2C5282; margin-bottom: 8px;">Scorecards</div>
+                            <div style="display: flex; gap: 8px;">
+                                <div style="flex: 1; background: #D4E5F7; padding: 8px; border-radius: 6px; text-align: center; font-size: 11px; color: #2C5282;">248</div>
+                                <div style="flex: 1; background: #E8D5F2; padding: 8px; border-radius: 6px; text-align: center; font-size: 11px; color: #5B3F7A;">$45M</div>
+                                <div style="flex: 1; background: #FFE4D6; padding: 8px; border-radius: 6px; text-align: center; font-size: 11px; color: #C65D3B;">$12M</div>
+                                <div style="flex: 1; background: #D5F0E3; padding: 8px; border-radius: 6px; text-align: center; font-size: 11px; color: #1D6F4A;">$32M</div>
+                            </div>
+                        </div>
+                        <div class="preview-card" style="background: #FAFBFF; border: 1px solid #D4E5F7;">
+                            <div style="font-weight: 600; color: #2C5282;">Grafico de Pacientes</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROPUESTA C: Durazno/Coral Suave -->
+        <div class="proposal">
+            <div class="proposal-header">
+                <div class="proposal-letter" style="background: #E8A87C;">C</div>
+                <div class="proposal-title">Tonos Durazno / Coral Suave</div>
+            </div>
+
+            <div class="colors-grid">
+                <div class="color-item">
+                    <div class="color-swatch" style="background: #E8A87C;"></div>
+                    <div class="color-name">Primario</div>
+                    <div class="color-hex">#E8A87C</div>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: #F5C9B3;"></div>
+                    <div class="color-name">Secundario</div>
+                    <div class="color-hex">#F5C9B3</div>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: #FFFAF7;"></div>
+                    <div class="color-name">Fondo Cards</div>
+                    <div class="color-hex">#FFFAF7</div>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: #FDF5F0;"></div>
+                    <div class="color-name">Fondo Pagina</div>
+                    <div class="color-hex">#FDF5F0</div>
+                </div>
+            </div>
+
+            <div class="scorecards-section">
+                <div class="scorecards-title">Colores de Scorecards</div>
+                <div class="scorecards-grid">
+                    <div class="scorecard-preview" style="background: #FFE5D9;">
+                        <div class="scorecard-icon" style="background: #E07A5F; color: white;">P</div>
+                        <div class="scorecard-value" style="color: #A84832;">248</div>
+                        <div class="scorecard-label" style="color: #C86B52;">Pacientes</div>
+                    </div>
+                    <div class="scorecard-preview" style="background: #F0E6D3;">
+                        <div class="scorecard-icon" style="background: #C9A66B; color: white;">$</div>
+                        <div class="scorecard-value" style="color: #8B6914;">$45.231.000</div>
+                        <div class="scorecard-label" style="color: #A68B5B;">Ventas</div>
+                    </div>
+                    <div class="scorecard-preview" style="background: #F5E1E9;">
+                        <div class="scorecard-icon" style="background: #D4889B; color: white;">G</div>
+                        <div class="scorecard-value" style="color: #A85A6E;">$12.450.000</div>
+                        <div class="scorecard-label" style="color: #C47A8E;">Gastos</div>
+                    </div>
+                    <div class="scorecard-preview" style="background: #E2F0E8;">
+                        <div class="scorecard-icon" style="background: #7AB89B; color: white;">U</div>
+                        <div class="scorecard-value" style="color: #3D7A5A;">$32.781.000</div>
+                        <div class="scorecard-label" style="color: #5D9A7A;">Utilidad</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="preview-section">
+                <div class="preview-title">Vista Previa del Dashboard</div>
+                <div class="preview-dashboard">
+                    <div class="preview-sidebar" style="background: #E8A87C;">
+                        <div class="preview-menu-item" style="background: rgba(255,255,255,0.2); color: white;">Dashboard</div>
+                        <div class="preview-menu-item" style="color: rgba(255,255,255,0.8);">Calendario</div>
+                        <div class="preview-menu-item" style="color: rgba(255,255,255,0.8);">Pacientes</div>
+                        <div class="preview-menu-item" style="color: rgba(255,255,255,0.8);">Ventas</div>
+                    </div>
+                    <div class="preview-content" style="background: #FDF5F0;">
+                        <div class="preview-card" style="background: #FFFAF7; border: 1px solid #FFE5D9;">
+                            <div style="font-weight: 600; color: #A84832; margin-bottom: 8px;">Scorecards</div>
+                            <div style="display: flex; gap: 8px;">
+                                <div style="flex: 1; background: #FFE5D9; padding: 8px; border-radius: 6px; text-align: center; font-size: 11px; color: #A84832;">248</div>
+                                <div style="flex: 1; background: #F0E6D3; padding: 8px; border-radius: 6px; text-align: center; font-size: 11px; color: #8B6914;">$45M</div>
+                                <div style="flex: 1; background: #F5E1E9; padding: 8px; border-radius: 6px; text-align: center; font-size: 11px; color: #A85A6E;">$12M</div>
+                                <div style="flex: 1; background: #E2F0E8; padding: 8px; border-radius: 6px; text-align: center; font-size: 11px; color: #3D7A5A;">$32M</div>
+                            </div>
+                        </div>
+                        <div class="preview-card" style="background: #FFFAF7; border: 1px solid #FFE5D9;">
+                            <div style="font-weight: 600; color: #A84832;">Grafico de Pacientes</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; color: #888; font-size: 12px; margin-top: 20px;">
+            <p>Para aprobar una propuesta, responde con la letra (A, B o C)</p>
+            <p style="margin-top: 4px;">Documento generado para revision - Medicina del Alma</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { X, Calendar, DollarSign, Phone, Mail, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { formatCOP } from "@/lib/utils";
 
 interface Sale {
   id: string;
@@ -97,14 +98,6 @@ export function PatientHistoryDrawer({
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("es-CO", {
-      style: "currency",
-      currency: "COP",
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
-
   if (!isOpen) return null;
 
   return (
@@ -183,7 +176,7 @@ export function PatientHistoryDrawer({
               <div className="bg-emerald-100 rounded-lg p-4 text-center">
                 <DollarSign className="h-6 w-6 mx-auto mb-2 text-emerald-600" />
                 <p className="text-2xl font-bold text-emerald-600">
-                  {formatCurrency(patient.totalSpent)}
+                  {formatCOP(patient.totalSpent)}
                 </p>
                 <p className="text-sm text-muted-foreground">Total Gastado</p>
               </div>
@@ -234,7 +227,7 @@ export function PatientHistoryDrawer({
                           </span>
                           {aptAmount > 0 && (
                             <span className="font-medium text-emerald-600">
-                              {formatCurrency(aptAmount)}
+                              {formatCOP(aptAmount)}
                             </span>
                           )}
                         </div>

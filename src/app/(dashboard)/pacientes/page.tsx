@@ -5,6 +5,7 @@ import { Search, Plus, Users } from "lucide-react";
 import { PatientsTable } from "@/components/pacientes/PatientsTable";
 import { PatientModal } from "@/components/pacientes/PatientModal";
 import { PatientHistoryDrawer } from "@/components/pacientes/PatientHistoryDrawer";
+import { formatCOP } from "@/lib/utils";
 
 interface Patient {
   id: string;
@@ -122,14 +123,6 @@ export default function PacientesPage() {
   const totalAppointments = patients.reduce((sum, p) => sum + p.totalAppointments, 0);
   const totalRevenue = patients.reduce((sum, p) => sum + p.totalSpent, 0);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("es-CO", {
-      style: "currency",
-      currency: "COP",
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
-
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -182,7 +175,7 @@ export default function PacientesPage() {
         <div className="bg-card rounded-lg border p-4">
           <div>
             <p className="text-2xl font-bold text-emerald-600">
-              {formatCurrency(totalRevenue)}
+              {formatCOP(totalRevenue)}
             </p>
             <p className="text-sm text-muted-foreground">Ingresos Totales</p>
           </div>
