@@ -65,7 +65,7 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { appointmentId, amount, paymentMethod, paymentNote, bankAccountId, date } = body;
+    const { appointmentId, amount, paymentMethod, paymentNote, bankAccountId, hasElectronicInvoice, date } = body;
 
     // Verify sale belongs to organization
     const existingSale = await prisma.sale.findFirst({
@@ -124,6 +124,7 @@ export async function PUT(
         ...(paymentMethod !== undefined && { paymentMethod }),
         ...(paymentNote !== undefined && { paymentNote: paymentNote || null }),
         ...(bankAccountId !== undefined && { bankAccountId: bankAccountId || null }),
+        ...(hasElectronicInvoice !== undefined && { hasElectronicInvoice }),
         ...(date !== undefined && { date: new Date(date) }),
       },
       include: {

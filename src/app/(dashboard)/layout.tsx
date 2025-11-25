@@ -1,6 +1,6 @@
 "use client";
 
-import { Sidebar, SidebarProvider, MobileMenuButton, useSidebar } from "@/components/layout";
+import { Sidebar, SidebarProvider, MobileMenuButton, useSidebar, InactivityTimeout } from "@/components/layout";
 import TabataChat from "@/components/chat/TabataChat";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +23,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         <main className="flex-1 p-4 pt-16 lg:p-6 lg:pt-6">{children}</main>
       </div>
       <TabataChat />
+      <InactivityTimeout />
     </div>
   );
 }

@@ -10,6 +10,7 @@ export interface Sale {
   amount: number;
   paymentMethod: string;
   paymentNote: string | null;
+  hasElectronicInvoice: boolean;
   createdAt: string;
   appointmentId?: string | null;
   bankAccountId?: string | null;
@@ -39,6 +40,7 @@ export interface SaleFormData {
   amount: number;
   paymentMethod: string;
   paymentNote: string | null;
+  hasElectronicInvoice: boolean;
   bankAccountId: string | null;
   date: string;
 }

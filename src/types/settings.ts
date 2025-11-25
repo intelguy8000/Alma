@@ -13,6 +13,7 @@ export interface GeneralSettingsFormData {
   logoUrl: string | null;
   primaryColor: string | null;
   defaultAppointmentValue: string;
+  sessionTimeout: string;
 }
 
 // Bank Accounts
@@ -51,6 +52,7 @@ export interface LocationFormData {
 // Settings keys
 export const SETTINGS_KEYS = {
   DEFAULT_APPOINTMENT_VALUE: 'default_appointment_value',
+  SESSION_TIMEOUT: 'session_timeout',
 } as const;
 
 export type SettingKey = typeof SETTINGS_KEYS[keyof typeof SETTINGS_KEYS];

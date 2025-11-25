@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, DollarSign, Hash, TrendingUp, Search, Calendar } from "lucide-react";
+import { Plus, DollarSign, Hash, TrendingUp, Search, Calendar, FileCheck } from "lucide-react";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { SalesTable } from "@/components/ventas/SalesTable";
 import { SaleModal } from "@/components/ventas/SaleModal";
@@ -152,6 +152,7 @@ export default function VentasPage() {
   const totalSales = sales.reduce((sum, sale) => sum + Number(sale.amount), 0);
   const salesCount = sales.length;
   const averageTicket = salesCount > 0 ? totalSales / salesCount : 0;
+  const electronicInvoicesCount = sales.filter(sale => sale.hasElectronicInvoice).length;
 
   return (
     <div className="p-6 space-y-6">
@@ -171,7 +172,7 @@ export default function VentasPage() {
       </div>
 
       {/* Scorecards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-[#CCE3DE] rounded-xl p-5 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <div className="w-10 h-10 rounded-lg bg-[#6B9080] flex items-center justify-center">
@@ -200,6 +201,16 @@ export default function VentasPage() {
           </div>
           <p className="text-2xl font-bold text-[#2E7D32]">{formatCOP(averageTicket)}</p>
           <p className="text-sm text-[#5C7A6B]">Ticket promedio</p>
+        </div>
+
+        <div className="bg-[#F5E6D3] rounded-xl p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-10 h-10 rounded-lg bg-[#D4A574] flex items-center justify-center">
+              <FileCheck className="w-5 h-5 text-white" />
+            </div>
+          </div>
+          <p className="text-2xl font-bold text-[#8B6914]">{electronicInvoicesCount}</p>
+          <p className="text-sm text-[#5C7A6B]">Facturas electrónicas</p>
         </div>
       </div>
 

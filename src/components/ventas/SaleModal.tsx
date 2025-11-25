@@ -38,6 +38,7 @@ export function SaleModal({
     paymentMethod: "efectivo",
     paymentNote: "",
     bankAccountId: "",
+    hasElectronicInvoice: false,
     date: new Date().toISOString().split("T")[0],
   });
 
@@ -54,6 +55,7 @@ export function SaleModal({
           paymentMethod: sale.paymentMethod,
           paymentNote: sale.paymentNote || "",
           bankAccountId: sale.bankAccountId || "",
+          hasElectronicInvoice: sale.hasElectronicInvoice || false,
           date: sale.date ? new Date(sale.date).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
         });
         if (sale.appointment?.patient) {
@@ -67,6 +69,7 @@ export function SaleModal({
           paymentMethod: "efectivo",
           paymentNote: "",
           bankAccountId: "",
+          hasElectronicInvoice: false,
           date: new Date().toISOString().split("T")[0],
         });
         setSelectedPatientId(null);
@@ -174,6 +177,7 @@ export function SaleModal({
         amount: formData.amount,
         paymentMethod: formData.paymentMethod,
         paymentNote: formData.paymentNote || null,
+        hasElectronicInvoice: formData.hasElectronicInvoice,
         bankAccountId: formData.paymentMethod === "transferencia" ? (formData.bankAccountId || null) : null,
         date: formData.date,
       };
@@ -377,6 +381,20 @@ export function SaleModal({
               placeholder={formData.paymentMethod === "otro" ? "Especifica el método de pago..." : "Nota opcional..."}
               required={formData.paymentMethod === "otro"}
             />
+          </div>
+
+          {/* Electronic Invoice */}
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="hasElectronicInvoice"
+              checked={formData.hasElectronicInvoice}
+              onChange={(e) => setFormData({ ...formData, hasElectronicInvoice: e.target.checked })}
+              className="w-4 h-4 text-[#6B9080] border-[#CCE3DE] rounded focus:ring-[#6B9080]"
+            />
+            <label htmlFor="hasElectronicInvoice" className="text-sm font-medium text-[#3D5A4C]">
+              Factura electrónica
+            </label>
           </div>
 
           <div className="flex gap-3 pt-2">

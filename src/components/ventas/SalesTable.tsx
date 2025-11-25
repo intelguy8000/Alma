@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Eye, Pencil, Trash2, MoreHorizontal } from "lucide-react";
+import { Eye, Pencil, Trash2, MoreHorizontal, FileCheck, FileX } from "lucide-react";
 import { formatCOP } from "@/lib/utils";
 import type { Sale } from "@/types/sales";
 
@@ -141,6 +141,7 @@ export function SalesTable({
               <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Cita asociada</th>
               <th className="px-4 py-3 text-right text-sm font-medium text-[#3D5A4C]">Monto</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Método</th>
+              <th className="px-4 py-3 text-center text-sm font-medium text-[#3D5A4C]">Factura E.</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Cuenta</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Registrado por</th>
               <th className="px-4 py-3 text-center text-sm font-medium text-[#3D5A4C]">Acciones</th>
@@ -196,6 +197,13 @@ export function SalesTable({
                     >
                       {methodInfo.label}
                     </span>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {sale.hasElectronicInvoice ? (
+                      <FileCheck className="h-5 w-5 text-[#2E7D32] mx-auto" />
+                    ) : (
+                      <FileX className="h-5 w-5 text-[#9CA3AF] mx-auto" />
+                    )}
                   </td>
                   <td className="px-4 py-3 text-sm text-[#5C7A6B]">
                     {sale.bankAccount ? sale.bankAccount.alias : "-"}

@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { appointmentId, amount, paymentMethod, paymentNote, bankAccountId, date } = body;
+    const { appointmentId, amount, paymentMethod, paymentNote, bankAccountId, hasElectronicInvoice, date } = body;
 
     if (!amount || amount <= 0) {
       return NextResponse.json(
@@ -146,6 +146,7 @@ export async function POST(request: NextRequest) {
         paymentMethod,
         paymentNote: paymentNote || null,
         bankAccountId: bankAccountId || null,
+        hasElectronicInvoice: hasElectronicInvoice || false,
         date: date ? new Date(date) : new Date(),
         createdById: session.user.id,
       },

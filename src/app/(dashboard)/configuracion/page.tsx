@@ -96,6 +96,7 @@ export default function ConfiguracionPage() {
           primaryColor: data.primaryColor,
           settings: {
             [SETTINGS_KEYS.DEFAULT_APPOINTMENT_VALUE]: data.defaultAppointmentValue,
+            [SETTINGS_KEYS.SESSION_TIMEOUT]: data.sessionTimeout,
           },
         }),
       });
