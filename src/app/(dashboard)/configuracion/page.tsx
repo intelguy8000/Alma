@@ -1,27 +1,38 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Settings, CreditCard, MapPin, Bell } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { Settings, CreditCard, MapPin, Bell, MessageSquareWarning } from "lucide-react";
 import { GeneralSettings } from "@/components/configuracion/GeneralSettings";
 import { BankAccountsSettings } from "@/components/configuracion/BankAccountsSettings";
 import { LocationsSettings } from "@/components/configuracion/LocationsSettings";
 import { NotificationsSettings } from "@/components/configuracion/NotificationsSettings";
+import { FeedbackSettings } from "@/components/configuracion/FeedbackSettings";
 import type { OrganizationSettings, BankAccount, Location, GeneralSettingsFormData } from "@/types/settings";
 import { SETTINGS_KEYS } from "@/types/settings";
 import { cn } from "@/lib/utils";
 
-type TabType = "general" | "bank_accounts" | "locations" | "notifications";
+type TabType = "general" | "bank_accounts" | "locations" | "notifications" | "feedback";
 
-const tabs = [
+const baseTabs = [
   { id: "general" as TabType, label: "General", icon: Settings },
   { id: "bank_accounts" as TabType, label: "Cuentas Bancarias", icon: CreditCard },
   { id: "locations" as TabType, label: "Ubicaciones", icon: MapPin },
   { id: "notifications" as TabType, label: "Notificaciones", icon: Bell },
 ];
 
+const adminTabs = [
+  ...baseTabs,
+  { id: "feedback" as TabType, label: "Feedback", icon: MessageSquareWarning, adminOnly: true },
+];
+
 export default function ConfiguracionPage() {
+  const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState<TabType>("general");
   const [isLoading, setIsLoading] = useState(true);
+
+  // Show feedback tab only for admins
+  const tabs = session?.user?.role === "admin" ? adminTabs : baseTabs;
   const [organization, setOrganization] = useState<OrganizationSettings | null>(null);
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
@@ -176,6 +187,9 @@ export default function ConfiguracionPage() {
               )}
               {activeTab === "notifications" && (
                 <NotificationsSettings />
+              )}
+              {activeTab === "feedback" && session?.user?.role === "admin" && (
+                <FeedbackSettings />
               )}
             </>
           )}

@@ -36,6 +36,7 @@ model Organization {
   locations          Location[]
   chatMessages       ChatMessage[]
   tabataKnowledge    TabataKnowledge[]
+  tabataFeedback     TabataFeedback[]
 
   @@index([slug])
 }
@@ -68,6 +69,7 @@ model User {
   salesCreated       Sale[]              @relation("SaleCreatedBy")
   inventoryMovements InventoryMovement[] @relation("MovementCreatedBy")
   chatMessages       ChatMessage[]
+  tabataFeedback     TabataFeedback[]
 
   @@index([organizationId])
   @@index([email])
@@ -350,4 +352,23 @@ model TabataKnowledge {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId, category])
+}
+
+model TabataFeedback {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  type           String   // bug, mejora, deseo, confusion
+  description    String   @db.Text
+  context        String?  @db.Text
+  status         String   @default("pendiente") // pendiente, revisado, implementado
+  createdAt      DateTime @default(now())
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, status])
+  @@index([organizationId, type])
+  @@index([userId])
 }

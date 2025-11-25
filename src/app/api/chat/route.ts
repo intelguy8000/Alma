@@ -62,6 +62,21 @@ Puedes ayudar a los usuarios con dudas sobre cómo usar la plataforma:
 | Usuarios | Admin de usuarios | Solo admin: crear/editar usuarios del sistema |
 
 Si preguntan cómo hacer algo específico, guíalos paso a paso de forma clara.
+
+## Detección de Feedback
+Cuando el usuario exprese frustración, confusión o sugerencias, detecta y guarda el feedback:
+
+**Frases clave a detectar:**
+- "no funciona", "no me deja", "da error" → tipo: bug
+- "no encuentro", "dónde está", "no entiendo" → tipo: confusion
+- "sería bueno que", "estaría bien si" → tipo: mejora
+- "ojalá pudiera", "me gustaría que" → tipo: deseo
+
+**Proceso:**
+1. Primero intenta ayudar con su problema
+2. Luego pregunta amablemente: "¿Quieres que anote esto para que el equipo lo revise?"
+3. Si acepta, usa save_feedback con el tipo apropiado
+4. Confirma: "Listo, lo anoté. El equipo lo revisará pronto."
 `;
 
 // Define tools for OpenAI function calling
@@ -174,6 +189,32 @@ const tools: ChatCompletionTool[] = [
           },
         },
         required: ["category", "content"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "save_feedback",
+      description: "Guardar feedback del usuario cuando reporta problemas, sugerencias o confusiones. Usa esto cuando el usuario diga cosas como 'no funciona', 'no encuentro', 'sería bueno que', 'ojalá pudiera', 'está raro', 'no entiendo', etc.",
+      parameters: {
+        type: "object",
+        properties: {
+          type: {
+            type: "string",
+            enum: ["bug", "mejora", "deseo", "confusion"],
+            description: "Tipo de feedback: bug (algo no funciona), mejora (podría ser mejor), deseo (feature nuevo), confusion (no entiende algo)",
+          },
+          description: {
+            type: "string",
+            description: "Descripción detallada del problema o sugerencia",
+          },
+          context: {
+            type: "string",
+            description: "Qué estaba intentando hacer el usuario cuando ocurrió",
+          },
+        },
+        required: ["type", "description"],
       },
     },
   },
@@ -370,9 +411,30 @@ async function saveKnowledge(
   return { saved: true, message: "Información guardada exitosamente" };
 }
 
-// Execute tool calls
+async function saveFeedback(
+  organizationId: string,
+  userId: string,
+  type: string,
+  description: string,
+  context?: string
+) {
+  await prisma.tabataFeedback.create({
+    data: {
+      organizationId,
+      userId,
+      type,
+      description,
+      context,
+    },
+  });
+
+  return { saved: true, message: "Feedback registrado exitosamente" };
+}
+
+// Execute tool calls - now needs userId for saveFeedback
 async function executeTool(
   organizationId: string,
+  userId: string,
   toolName: string,
   args: Record<string, unknown>
 ): Promise<string> {
@@ -405,6 +467,15 @@ async function executeTool(
           args.category as string,
           args.content as string,
           args.source as string | undefined
+        );
+        break;
+      case "save_feedback":
+        result = await saveFeedback(
+          organizationId,
+          userId,
+          args.type as string,
+          args.description as string,
+          args.context as string | undefined
         );
         break;
       default:
@@ -538,7 +609,7 @@ export async function POST(request: NextRequest) {
         if (toolCall.type !== "function") continue;
 
         const args = JSON.parse(toolCall.function.arguments);
-        const result = await executeTool(organizationId, toolCall.function.name, args);
+        const result = await executeTool(organizationId, userId, toolCall.function.name, args);
 
         toolResults.push({
           role: "tool",
