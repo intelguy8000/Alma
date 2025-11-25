@@ -12,6 +12,7 @@ import {
   Zap,
   MoreVertical,
   Check,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +39,7 @@ export interface Appointment {
   locationLabel: string;
   status: "confirmada" | "no_responde" | "cancelada" | "reagendada" | "completada";
   notes: string;
+  hasSales?: boolean;
 }
 
 interface AppointmentsTableProps {
@@ -46,6 +48,7 @@ interface AppointmentsTableProps {
   onComplete: (appointment: Appointment) => void;
   onReschedule: (appointment: Appointment) => void;
   onStatusChange: (id: string, status: Appointment["status"]) => void;
+  onDelete: (appointment: Appointment) => void;
 }
 
 const typeConfig = {
@@ -80,10 +83,12 @@ export function AppointmentsTable({
   onComplete,
   onReschedule,
   onStatusChange,
+  onDelete,
 }: AppointmentsTableProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [openStatusDropdown, setOpenStatusDropdown] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const handleWhatsAppCopy = async (appointment: Appointment) => {
     const dateFormatted = format(appointment.date, "EEEE d 'de' MMMM", { locale: es });
@@ -326,6 +331,40 @@ export function AppointmentsTable({
                                 <CalendarClock className="w-4 h-4 text-blue-500" />
                                 Re-agendar
                               </button>
+                              <hr className="my-1 border-gray-100" />
+                              {deleteConfirmId === appointment.id ? (
+                                <button
+                                  onClick={() => {
+                                    onDelete(appointment);
+                                    setDeleteConfirmId(null);
+                                    setOpenDropdown(null);
+                                  }}
+                                  className="w-full text-left px-3 py-2 text-sm hover:bg-red-50 flex items-center gap-2 text-red-600"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                  Confirmar eliminación
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => {
+                                    if (appointment.hasSales) {
+                                      alert("No se puede eliminar, tiene pagos registrados");
+                                      setOpenDropdown(null);
+                                    } else {
+                                      setDeleteConfirmId(appointment.id);
+                                    }
+                                  }}
+                                  className={cn(
+                                    "w-full text-left px-3 py-2 text-sm flex items-center gap-2",
+                                    appointment.hasSales
+                                      ? "text-gray-400 cursor-not-allowed"
+                                      : "text-red-600 hover:bg-red-50"
+                                  )}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                  Eliminar
+                                </button>
+                              )}
                             </div>
                           </>
                         )}

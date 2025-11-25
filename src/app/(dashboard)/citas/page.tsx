@@ -35,6 +35,7 @@ interface APIAppointment {
     phone: string | null;
     whatsapp: string | null;
   };
+  sales?: { id: string; amount: number }[];
 }
 
 interface Location {
@@ -68,6 +69,7 @@ const apiToAppointment = (apt: APIAppointment, locations: Location[]): Appointme
     locationLabel: location?.name || apt.location || "",
     status: apt.status,
     notes: apt.notes || "",
+    hasSales: (apt.sales?.length ?? 0) > 0,
   };
 };
 
@@ -264,17 +266,26 @@ export default function CitasPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (appointment: Appointment) => {
+    if (appointment.hasSales) {
+      alert("No se puede eliminar, tiene pagos registrados");
+      return;
+    }
+
     try {
-      const response = await fetch(`/api/appointments/${id}`, {
+      const response = await fetch(`/api/appointments/${appointment.id}`, {
         method: "DELETE",
       });
 
       if (response.ok) {
         fetchAppointments(locations);
+      } else {
+        const data = await response.json();
+        alert(data.error || "Error al eliminar la cita");
       }
     } catch (error) {
       console.error("Error deleting appointment:", error);
+      alert("Error al eliminar la cita");
     }
   };
 
@@ -422,6 +433,7 @@ export default function CitasPage() {
           onComplete={handleComplete}
           onReschedule={handleReschedule}
           onStatusChange={handleStatusChange}
+          onDelete={handleDelete}
         />
       )}
 
@@ -430,7 +442,10 @@ export default function CitasPage() {
         isOpen={appointmentModalOpen}
         onClose={() => setAppointmentModalOpen(false)}
         onSave={handleSaveAppointment}
-        onDelete={handleDelete}
+        onDelete={(id: string) => {
+          // Wrapper for modal - creates minimal appointment object
+          handleDelete({ id, hasSales: false } as Appointment);
+        }}
         initialData={selectedAppointment}
         mode={appointmentModalMode}
       />
