@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { MessageSquare, X, Send, Trash2, Loader2, Sparkles } from "lucide-react";
+import { MessageSquare, X, Send, Trash2, Loader2, Sparkles, Maximize2, Minimize2, ChevronDown } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 
 interface Message {
   id: string;
@@ -12,10 +13,12 @@ interface Message {
 
 export default function TabataChat() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -50,6 +53,20 @@ export default function TabataChat() {
     }
   }, [isOpen, loadHistory]);
 
+  // Load expanded preference from localStorage
+  useEffect(() => {
+    const savedExpanded = localStorage.getItem("tabata-expanded");
+    if (savedExpanded === "true") {
+      setIsExpanded(true);
+    }
+  }, []);
+
+  const toggleExpanded = () => {
+    const newValue = !isExpanded;
+    setIsExpanded(newValue);
+    localStorage.setItem("tabata-expanded", String(newValue));
+  };
+
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
@@ -66,6 +83,9 @@ export default function TabataChat() {
     };
     setMessages((prev) => [...prev, tempUserMessage]);
     setIsLoading(true);
+
+    // Keep focus on input
+    inputRef.current?.focus();
 
     try {
       const res = await fetch("/api/chat", {
@@ -101,14 +121,12 @@ export default function TabataChat() {
       ]);
     } finally {
       setIsLoading(false);
+      // Ensure focus stays on input
+      setTimeout(() => inputRef.current?.focus(), 50);
     }
   };
 
   const clearHistory = async () => {
-    if (!confirm("¿Estás seguro de que deseas borrar todo el historial de chat?")) {
-      return;
-    }
-
     try {
       const res = await fetch("/api/chat/clear", { method: "POST" });
       if (res.ok) {
@@ -116,6 +134,8 @@ export default function TabataChat() {
       }
     } catch (error) {
       console.error("Error clearing history:", error);
+    } finally {
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -126,6 +146,11 @@ export default function TabataChat() {
       minute: "2-digit",
     });
   };
+
+  // Chat window sizes
+  const chatSizeClasses = isExpanded
+    ? "h-[80vh] w-[70vw] max-w-4xl bottom-6 right-6"
+    : "h-[500px] w-[380px] bottom-24 right-6";
 
   return (
     <>
@@ -148,7 +173,7 @@ export default function TabataChat() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-50 flex h-[500px] w-[380px] flex-col overflow-hidden rounded-2xl border border-border bg-white shadow-2xl">
+        <div className={`fixed z-50 flex flex-col overflow-hidden rounded-2xl border border-border bg-white shadow-2xl transition-all duration-300 ${chatSizeClasses}`}>
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border bg-primary px-4 py-3">
             <div className="flex items-center gap-2">
@@ -160,14 +185,60 @@ export default function TabataChat() {
                 <p className="text-xs text-white/80">Asistente del consultorio</p>
               </div>
             </div>
-            <button
-              onClick={clearHistory}
-              className="rounded-lg p-2 text-white/80 transition-colors hover:bg-white/10 hover:text-white"
-              title="Borrar historial"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={toggleExpanded}
+                className="rounded-lg p-2 text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+                title={isExpanded ? "Contraer" : "Expandir"}
+              >
+                {isExpanded ? (
+                  <Minimize2 className="h-4 w-4" />
+                ) : (
+                  <Maximize2 className="h-4 w-4" />
+                )}
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="rounded-lg p-2 text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+                title="Borrar historial"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="rounded-lg p-2 text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+                title="Minimizar"
+              >
+                <ChevronDown className="h-4 w-4" />
+              </button>
+            </div>
           </div>
+
+          {/* Delete Confirmation Modal */}
+          {showDeleteConfirm && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50">
+              <div className="mx-4 rounded-xl bg-white p-6 shadow-xl">
+                <h4 className="mb-2 font-semibold text-text-dark">¿Borrar historial?</h4>
+                <p className="mb-4 text-sm text-text-muted">
+                  Esta acción eliminará todos los mensajes de tu conversación con Tabata.
+                </p>
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    className="rounded-lg px-4 py-2 text-sm text-text-muted hover:bg-gray-100"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={clearHistory}
+                    className="rounded-lg bg-red-500 px-4 py-2 text-sm text-white hover:bg-red-600"
+                  >
+                    Sí, borrar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto bg-background p-4">
@@ -203,7 +274,13 @@ export default function TabataChat() {
                           : "bg-white text-text-dark shadow-sm"
                       }`}
                     >
-                      <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+                      {message.role === "assistant" ? (
+                        <div className="prose prose-sm max-w-none text-text-dark prose-p:my-1 prose-ul:my-1 prose-li:my-0 prose-table:my-2 prose-th:bg-gray-100 prose-th:px-2 prose-th:py-1 prose-td:px-2 prose-td:py-1 prose-th:text-left prose-table:text-xs">
+                          <ReactMarkdown>{message.content}</ReactMarkdown>
+                        </div>
+                      ) : (
+                        <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+                      )}
                       <p
                         className={`mt-1 text-right text-xs ${
                           message.role === "user"

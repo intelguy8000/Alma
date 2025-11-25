@@ -9,8 +9,12 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || "sk-placeholder",
 });
 
-// System prompt for Tabata
-const SYSTEM_PROMPT = `Eres Tabata, la asistente virtual de Medicina del Alma, un consultorio de terapias bioenergéticas en Medellín, Colombia.
+// System prompt for Tabata - will be personalized with user name
+const getSystemPrompt = (userName: string) => `Eres Tabata, la asistente virtual de Medicina del Alma, un consultorio de terapias bioenergéticas en Medellín, Colombia.
+
+## Contexto Actual
+- Fecha: ${new Date().toLocaleDateString("es-CO", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+- Estás hablando con: **${userName}**
 
 ## Tu Personalidad
 - Amable, profesional y eficiente
@@ -25,6 +29,7 @@ Puedes ayudar con:
 3. **Buscar citas de un paciente** - historial de citas
 4. **Consultar inventario** - ver stock disponible
 5. **Ver resumen financiero** - ingresos y gastos
+6. **Ayuda con la plataforma** - explicar cómo usar el sistema
 
 ## Restricciones
 - Solo puedes consultar información, NO puedes crear, modificar o eliminar datos
@@ -34,12 +39,29 @@ Puedes ayudar con:
 
 ## Formato de Respuestas
 - Usa formato claro y estructurado
+- Para datos tabulares usa tablas markdown
 - Para listas usa viñetas
 - Incluye datos relevantes sin abrumar
 - Si hay muchos resultados, muestra un resumen
 
-## Información del Consultorio
-Fecha actual: ${new Date().toLocaleDateString("es-CO", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+## Guía de la Plataforma
+Puedes ayudar a los usuarios con dudas sobre cómo usar la plataforma:
+
+| Módulo | Descripción | Cómo usarlo |
+|--------|-------------|-------------|
+| Dashboard | Resumen general | Ver KPIs de pacientes, ventas, gastos y citas |
+| Calendario | Agenda visual | Click en slot vacío para crear cita, arrastra para mover |
+| Citas | Lista de citas | Filtrar por estado, ver detalles, cambiar estado |
+| Pacientes | Gestión pacientes | Crear nuevo con +, ver historial con ícono de ojo |
+| Ventas | Pagos recibidos | Registrar pago asociado a cita completada |
+| Compras & Gastos | Egresos | Registrar gastos, asociar a proveedor |
+| Proveedores | Gestión proveedores | Crear/editar proveedores, ver historial de compras |
+| Inventario | Control de stock | Botón + para entrada, - para salida de items |
+| P&G | Estados financieros | Ver ingresos vs gastos por período |
+| Configuración | Ajustes | Valor de cita, cuentas bancarias, ubicaciones |
+| Usuarios | Admin de usuarios | Solo admin: crear/editar usuarios del sistema |
+
+Si preguntan cómo hacer algo específico, guíalos paso a paso de forma clara.
 `;
 
 // Define tools for OpenAI function calling
@@ -442,6 +464,7 @@ export async function POST(request: NextRequest) {
 
     const organizationId = session.user.organizationId;
     const userId = session.user.id;
+    const userName = session.user.name || "Usuario";
 
     // Save user message
     const userMessage = await prisma.chatMessage.create({
@@ -453,7 +476,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Get recent chat history for context
+    // Get recent chat history for context (only for this user)
     const recentMessages = await prisma.chatMessage.findMany({
       where: {
         organizationId,
@@ -476,10 +499,11 @@ export async function POST(request: NextRequest) {
       take: 5,
     });
 
-    // Build messages for OpenAI
+    // Build system prompt with user context and knowledge
+    const basePrompt = getSystemPrompt(userName);
     const systemPromptWithKnowledge = knowledge.length > 0
-      ? `${SYSTEM_PROMPT}\n\n## Conocimiento del Consultorio\n${knowledge.map((k) => `- [${k.category}] ${k.content}`).join("\n")}`
-      : SYSTEM_PROMPT;
+      ? `${basePrompt}\n\n## Conocimiento del Consultorio\n${knowledge.map((k) => `- [${k.category}] ${k.content}`).join("\n")}`
+      : basePrompt;
 
     const openaiMessages: ChatCompletionMessageParam[] = [
       { role: "system", content: systemPromptWithKnowledge },
