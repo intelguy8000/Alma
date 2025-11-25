@@ -81,8 +81,8 @@ function SidebarContent() {
   return (
     <div className="flex flex-col h-full bg-[#6B9080] text-white">
       {/* Logo */}
-      <div className="flex items-center justify-between p-4 border-b border-white/20">
-        <div className="flex items-center gap-3 overflow-hidden">
+      <div className="flex items-center p-4 border-b border-white/20">
+        <div className="flex items-center gap-3 overflow-hidden flex-1">
           <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
             <span className="text-white font-bold text-lg">M</span>
           </div>
@@ -95,17 +95,6 @@ function SidebarContent() {
             Medicina del Alma
           </span>
         </div>
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="hidden lg:flex p-1.5 rounded-lg hover:bg-white/10 transition-colors"
-        >
-          <ChevronLeft
-            className={cn(
-              "w-5 h-5 transition-transform duration-300",
-              !isExpanded && "rotate-180"
-            )}
-          />
-        </button>
       </div>
 
       {/* Menu */}
@@ -205,6 +194,25 @@ function SidebarContent() {
   );
 }
 
+function ExpandButton() {
+  const { isExpanded, setIsExpanded } = useSidebar();
+
+  return (
+    <button
+      onClick={() => setIsExpanded(!isExpanded)}
+      className="hidden lg:flex absolute top-20 -right-3 w-6 h-6 bg-[#6B9080] border-2 border-white rounded-full items-center justify-center hover:bg-[#5a7a6d] transition-colors shadow-md z-50"
+      title={isExpanded ? "Contraer menú" : "Expandir menú"}
+    >
+      <ChevronLeft
+        className={cn(
+          "w-3 h-3 text-white transition-transform duration-300",
+          !isExpanded && "rotate-180"
+        )}
+      />
+    </button>
+  );
+}
+
 export function Sidebar() {
   const { isExpanded, isMobileOpen, setIsMobileOpen } = useSidebar();
 
@@ -218,6 +226,7 @@ export function Sidebar() {
         )}
       >
         <SidebarContent />
+        <ExpandButton />
       </aside>
 
       {/* Mobile Overlay */}

@@ -292,7 +292,7 @@ export function CalendarView() {
 
   return (
     <>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 calendar-container">
         <FullCalendar
           ref={calendarRef}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -311,7 +311,7 @@ export function CalendarView() {
           }}
           slotMinTime="07:00:00"
           slotMaxTime="20:00:00"
-          slotDuration="01:00:00"
+          slotDuration="00:30:00"
           allDaySlot={false}
           weekends={true}
           selectable={true}
@@ -322,10 +322,11 @@ export function CalendarView() {
           select={handleDateSelect}
           eventClick={handleEventClick}
           eventDrop={handleEventDrop}
-          height="auto"
-          aspectRatio={1.8}
+          height="calc(100vh - 200px)"
           nowIndicator={true}
           eventDisplay="block"
+          expandRows={true}
+          stickyHeaderDates={true}
           eventTimeFormat={{
             hour: "2-digit",
             minute: "2-digit",

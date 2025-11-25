@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
   BarChart,
   Bar,
@@ -11,7 +10,6 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { Calendar } from "lucide-react";
 
 interface DataPoint {
   name: string;
@@ -26,37 +24,12 @@ interface AppointmentsBarChartProps {
   data: DataPoint[];
 }
 
-const dateRanges = [
-  { label: "Última semana", value: "7d" },
-  { label: "Último mes", value: "30d" },
-  { label: "Últimos 3 meses", value: "90d" },
-  { label: "Este año", value: "year" },
-];
-
 export function AppointmentsBarChart({ data }: AppointmentsBarChartProps) {
-  const [selectedRange, setSelectedRange] = useState("30d");
-
   return (
     <div className="bg-[#F6FFF8] rounded-xl p-6 shadow-sm border border-[#CCE3DE]">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-        <h3 className="text-lg font-semibold text-[#2D3D35]">
-          Resumen de Citas
-        </h3>
-        <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-[#5C7A6B]" />
-          <select
-            value={selectedRange}
-            onChange={(e) => setSelectedRange(e.target.value)}
-            className="text-sm border border-[#CCE3DE] rounded-lg px-3 py-1.5 bg-[#F6FFF8] focus:outline-none focus:ring-2 focus:ring-[#6B9080] focus:border-transparent text-[#3D5A4C]"
-          >
-            {dateRanges.map((range) => (
-              <option key={range.value} value={range.value}>
-                {range.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+      <h3 className="text-lg font-semibold text-[#2D3D35] mb-4">
+        Resumen de Citas
+      </h3>
       <div className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
