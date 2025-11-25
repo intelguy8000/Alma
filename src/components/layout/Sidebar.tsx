@@ -63,7 +63,7 @@ const menuItems = [
   { name: "Proveedores", href: "/proveedores", icon: Truck },
   { name: "Inventario", href: "/inventario", icon: Package },
   { name: "Pacientes", href: "/pacientes", icon: Users },
-  { name: "P&G", href: "/reportes", icon: TrendingUp },
+  { name: "P&G", href: "/pyg", icon: TrendingUp },
   { name: "Integraciones", href: "/integraciones", icon: Plug },
   { name: "Usuarios", href: "/usuarios", icon: UserCog },
   { name: "Configuración", href: "/configuracion", icon: Settings },
