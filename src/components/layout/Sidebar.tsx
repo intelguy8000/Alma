@@ -55,7 +55,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
 }
 
 const menuItems = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Calendario", href: "/calendario", icon: Calendar },
   { name: "Citas", href: "/citas", icon: ClipboardList },
   { name: "Ventas", href: "/ventas", icon: DollarSign },
