@@ -1,0 +1,250 @@
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { Eye, Pencil, Trash2, MoreHorizontal } from "lucide-react";
+import { formatCOP } from "@/lib/utils";
+
+interface Sale {
+  id: string;
+  date: string;
+  amount: number;
+  paymentMethod: string;
+  paymentNote: string | null;
+  appointment: {
+    id: string;
+    date: string;
+    startTime: string;
+    patient: {
+      id: string;
+      fullName: string;
+      patientCode: string;
+    };
+  } | null;
+  bankAccount: {
+    id: string;
+    alias: string;
+    bankName: string | null;
+  } | null;
+  createdBy: {
+    id: string;
+    fullName: string;
+  };
+}
+
+interface SalesTableProps {
+  sales: Sale[];
+  onView: (sale: Sale) => void;
+  onEdit: (sale: Sale) => void;
+  onDelete: (saleId: string) => void;
+  isLoading?: boolean;
+}
+
+const paymentMethodLabels: Record<string, { label: string; color: string }> = {
+  efectivo: { label: "Efectivo", color: "bg-[#E8F5E9] text-[#2E7D32]" },
+  transferencia: { label: "Transferencia", color: "bg-[#D4E5F7] text-[#2C5282]" },
+  otro: { label: "Otro", color: "bg-[#F5E6D3] text-[#8B6914]" },
+};
+
+function ActionMenu({
+  sale,
+  onView,
+  onEdit,
+  onDelete,
+}: {
+  sale: Sale;
+  onView: (sale: Sale) => void;
+  onEdit: (sale: Sale) => void;
+  onDelete: (saleId: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+        setShowDeleteConfirm(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleDelete = () => {
+    if (showDeleteConfirm) {
+      onDelete(sale.id);
+      setShowDeleteConfirm(false);
+      setIsOpen(false);
+    } else {
+      setShowDeleteConfirm(true);
+    }
+  };
+
+  return (
+    <div className="relative" ref={menuRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="p-1 hover:bg-[#CCE3DE] rounded-md transition-colors"
+      >
+        <MoreHorizontal className="h-5 w-5 text-[#5C7A6B]" />
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 mt-1 w-48 bg-[#F6FFF8] border border-[#CCE3DE] rounded-md shadow-lg z-10">
+          <button
+            onClick={() => {
+              onView(sale);
+              setIsOpen(false);
+            }}
+            className="w-full px-3 py-2 text-left text-sm hover:bg-[#CCE3DE]/50 flex items-center gap-2 text-[#3D5A4C]"
+          >
+            <Eye className="h-4 w-4" />
+            Ver detalle
+          </button>
+          <button
+            onClick={() => {
+              onEdit(sale);
+              setIsOpen(false);
+            }}
+            className="w-full px-3 py-2 text-left text-sm hover:bg-[#CCE3DE]/50 flex items-center gap-2 text-[#3D5A4C]"
+          >
+            <Pencil className="h-4 w-4" />
+            Editar
+          </button>
+          <hr className="my-1 border-[#CCE3DE]" />
+          <button
+            onClick={handleDelete}
+            className="w-full px-3 py-2 text-left text-sm hover:bg-[#FFE4D6] flex items-center gap-2 text-[#C65D3B]"
+          >
+            <Trash2 className="h-4 w-4" />
+            {showDeleteConfirm ? "Confirmar eliminación" : "Eliminar"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function SalesTable({
+  sales,
+  onView,
+  onEdit,
+  onDelete,
+  isLoading,
+}: SalesTableProps) {
+  if (isLoading) {
+    return (
+      <div className="bg-[#F6FFF8] rounded-lg border border-[#CCE3DE] overflow-hidden">
+        <div className="animate-pulse">
+          <div className="h-12 bg-[#CCE3DE]/50" />
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="h-16 bg-[#CCE3DE]/20 border-t border-[#CCE3DE]" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (sales.length === 0) {
+    return (
+      <div className="bg-[#F6FFF8] rounded-lg border border-[#CCE3DE] p-8 text-center">
+        <p className="text-[#5C7A6B]">No se encontraron ventas</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-[#F6FFF8] rounded-lg border border-[#CCE3DE] overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-[#CCE3DE] bg-[#CCE3DE]/30">
+              <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Fecha</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Paciente</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Cita asociada</th>
+              <th className="px-4 py-3 text-right text-sm font-medium text-[#3D5A4C]">Monto</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Método</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Cuenta</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Registrado por</th>
+              <th className="px-4 py-3 text-center text-sm font-medium text-[#3D5A4C]">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sales.map((sale) => {
+              const methodInfo = paymentMethodLabels[sale.paymentMethod] || {
+                label: sale.paymentMethod,
+                color: "bg-gray-100 text-gray-800",
+              };
+
+              return (
+                <tr
+                  key={sale.id}
+                  className="border-b border-[#CCE3DE] last:border-0 hover:bg-[#CCE3DE]/20"
+                >
+                  <td className="px-4 py-3 text-sm text-[#3D5A4C]">
+                    {format(new Date(sale.date), "d MMM yyyy", { locale: es })}
+                  </td>
+                  <td className="px-4 py-3">
+                    {sale.appointment?.patient ? (
+                      <div>
+                        <p className="text-sm font-medium text-[#2D3D35]">
+                          {sale.appointment.patient.fullName}
+                        </p>
+                        <p className="text-xs text-[#5C7A6B]">
+                          {sale.appointment.patient.patientCode}
+                        </p>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-[#5C7A6B]">-</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-[#5C7A6B]">
+                    {sale.appointment ? (
+                      <span>
+                        {format(new Date(sale.appointment.date), "d MMM", { locale: es })} -{" "}
+                        {sale.appointment.startTime.substring(0, 5)}
+                      </span>
+                    ) : (
+                      "-"
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <span className="text-sm font-semibold text-[#2E7D32]">
+                      {formatCOP(sale.amount)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`px-2 py-1 text-xs font-medium rounded-full ${methodInfo.color}`}
+                    >
+                      {methodInfo.label}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-[#5C7A6B]">
+                    {sale.bankAccount ? sale.bankAccount.alias : "-"}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-[#5C7A6B]">
+                    {sale.createdBy.fullName}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex justify-center">
+                      <ActionMenu
+                        sale={sale}
+                        onView={onView}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
