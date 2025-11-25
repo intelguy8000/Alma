@@ -1,6 +1,7 @@
 "use client";
 
 import { Sidebar, SidebarProvider, Header, useSidebar } from "@/components/layout";
+import TabataChat from "@/components/chat/TabataChat";
 import { cn } from "@/lib/utils";
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
@@ -18,6 +19,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         <Header />
         <main className="flex-1 p-4 lg:p-6">{children}</main>
       </div>
+      <TabataChat />
     </div>
   );
 }

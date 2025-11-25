@@ -34,6 +34,8 @@ model Organization {
   inventoryItems     InventoryItem[]
   settings           Setting[]
   locations          Location[]
+  chatMessages       ChatMessage[]
+  tabataKnowledge    TabataKnowledge[]
 
   @@index([slug])
 }
@@ -65,6 +67,7 @@ model User {
   organization       Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   salesCreated       Sale[]              @relation("SaleCreatedBy")
   inventoryMovements InventoryMovement[] @relation("MovementCreatedBy")
+  chatMessages       ChatMessage[]
 
   @@index([organizationId])
   @@index([email])
@@ -312,4 +315,39 @@ model Location {
 
   @@index([organizationId])
   @@index([organizationId, isActive])
+}
+
+// ===========================================
+// TABATA AI ASSISTANT
+// ===========================================
+
+model ChatMessage {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  role           String   // user, assistant
+  content        String   @db.Text
+  createdAt      DateTime @default(now())
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([userId])
+}
+
+model TabataKnowledge {
+  id             String    @id @default(cuid())
+  organizationId String
+  category       String    // paciente, proceso, preferencia, regla
+  content        String    @db.Text
+  source         String?   // cómo lo aprendió
+  createdAt      DateTime  @default(now())
+  expiresAt      DateTime?
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, category])
 }

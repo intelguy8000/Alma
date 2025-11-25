@@ -1,109 +1,134 @@
 # TABATA - Asistente AI de Medicina del Alma
 
-> **Estado**: Documentación en desarrollo
+> **Estado**: Fase 1 completada - Chat básico con tools
 
 ## Visión General
 
 **Tabata** es el asistente de inteligencia artificial de Medicina del Alma, diseñado para automatizar y simplificar la gestión del consultorio a través de conversaciones naturales.
 
-## Propósito
+## Implementación Actual
 
-Tabata ayudará a los profesionales de la salud y su personal administrativo con:
+### Componentes
+- `src/components/chat/TabataChat.tsx` - Widget flotante de chat
+- `src/app/api/chat/route.ts` - API principal con OpenAI y tools
+- `src/app/api/chat/clear/route.ts` - API para limpiar historial
 
-### Gestión de Citas
-- Consultar disponibilidad de horarios
-- Agendar nuevas citas
-- Reagendar citas existentes
-- Enviar recordatorios a pacientes
-- Confirmar asistencia
+### Modelos de Base de Datos
+```prisma
+model ChatMessage {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  role           String   // user, assistant
+  content        String   @db.Text
+  createdAt      DateTime @default(now())
 
-### Consultas de Información
-- Buscar pacientes por nombre o código
-- Consultar historial de citas de un paciente
-- Verificar estado de pagos
-- Obtener resúmenes del día/semana
+  organization   Organization @relation(...)
+  user           User         @relation(...)
 
-### Recordatorios Automáticos
-- Citas del día siguiente (WhatsApp/Email)
-- Pacientes que no han agendado en X tiempo
-- Stock bajo de inventario
-- Pagos pendientes
+  @@index([organizationId, createdAt])
+  @@index([userId])
+}
 
-### Reportes Rápidos
-- Resumen de ingresos del período
-- Citas completadas vs canceladas
-- Ocupación del calendario
+model TabataKnowledge {
+  id             String    @id @default(cuid())
+  organizationId String
+  category       String    // paciente, proceso, preferencia, regla
+  content        String    @db.Text
+  source         String?   // cómo lo aprendió
+  createdAt      DateTime  @default(now())
+  expiresAt      DateTime?
 
----
+  organization   Organization @relation(...)
 
-## Especificación Técnica
-
-### System Prompt
-```
-[PENDIENTE DE DEFINIR]
-
-El system prompt de Tabata debe incluir:
-- Contexto del consultorio
-- Personalidad y tono
-- Capacidades disponibles
-- Restricciones y límites
-- Formato de respuestas
-```
-
-### Herramientas (Tools)
-
-```typescript
-// [PENDIENTE DE IMPLEMENTAR]
-
-interface TabataTools {
-  // Citas
-  searchAvailableSlots(date: string, duration: number): Promise<Slot[]>;
-  createAppointment(data: AppointmentData): Promise<Appointment>;
-  rescheduleAppointment(id: string, newDate: string, newTime: string): Promise<Appointment>;
-  cancelAppointment(id: string, reason: string): Promise<void>;
-
-  // Pacientes
-  searchPatients(query: string): Promise<Patient[]>;
-  getPatientHistory(patientId: string): Promise<PatientHistory>;
-
-  // Información
-  getTodayAppointments(): Promise<Appointment[]>;
-  getWeekSummary(): Promise<WeekSummary>;
-
-  // Comunicación
-  sendWhatsAppReminder(patientId: string, message: string): Promise<void>;
-  sendEmailReminder(patientId: string, subject: string, body: string): Promise<void>;
+  @@index([organizationId, category])
 }
 ```
 
-### Integración Planificada
+### Tools Implementados (Function Calling)
 
-| Canal | Estado | Descripción |
-|-------|--------|-------------|
-| Web Chat | Pendiente | Widget en dashboard |
-| WhatsApp | Pendiente | Bot para pacientes |
-| API REST | Pendiente | Integración externa |
+| Tool | Descripción | Parámetros |
+|------|-------------|------------|
+| `search_patients` | Buscar pacientes por nombre/código | `query: string` |
+| `get_today_appointments` | Ver citas del día | ninguno |
+| `get_patient_appointments` | Historial de citas de un paciente | `patientId: string` |
+| `get_inventory_status` | Consultar inventario | `query?: string`, `lowStockOnly?: boolean` |
+| `get_financial_summary` | Resumen de ingresos/gastos | `period: "today" | "week" | "month"` |
+| `save_knowledge` | Guardar información del consultorio | `category, content, source?` |
+
+### Modelo y Configuración
+- **Modelo**: gpt-4o-mini
+- **Temperatura**: 0.7
+- **Max tokens**: 1000
+- **Contexto**: Últimos 10 mensajes + conocimiento guardado
+
+---
+
+## Capacidades Actuales
+
+### Consultas de Información (Solo Lectura)
+- Buscar pacientes por nombre o código
+- Ver citas programadas para hoy
+- Consultar historial de citas de un paciente
+- Ver estado del inventario (incluye alertas de stock bajo)
+- Obtener resumen financiero (hoy, semana, mes)
+
+### Sistema de Memoria
+- Historial de chat persistente por usuario
+- Base de conocimiento del consultorio (TabataKnowledge)
+- Categorización: paciente, proceso, preferencia, regla
+
+---
+
+## Variables de Entorno Requeridas
+
+```env
+OPENAI_API_KEY="sk-..."
+```
+
+---
+
+## Uso
+
+El chat aparece como un botón flotante en la esquina inferior derecha de todas las páginas del dashboard. Al hacer clic:
+
+1. Se abre la ventana de chat
+2. Se carga el historial de conversaciones
+3. El usuario puede escribir preguntas en lenguaje natural
+4. Tabata responde usando los tools disponibles
+
+### Ejemplos de Preguntas
+
+```
+- "¿Cuántas citas tengo hoy?"
+- "Busca al paciente María García"
+- "¿Cómo va el inventario?"
+- "Dame el resumen financiero de este mes"
+- "¿Cuántas veces ha venido el paciente P-001?"
+```
 
 ---
 
 ## Roadmap
 
-### Fase 1: Fundamentos
-- [ ] Definir system prompt base
-- [ ] Implementar tools básicos (consultas)
-- [ ] Crear endpoint API para chat
+### Fase 1: Fundamentos ✅
+- [x] Modelos de base de datos (ChatMessage, TabataKnowledge)
+- [x] Componente de chat flotante
+- [x] API con OpenAI function calling
+- [x] Tools de consulta (pacientes, citas, inventario, finanzas)
+- [x] Sistema de memoria básico
 
-### Fase 2: Acciones
-- [ ] Implementar tools de escritura (crear/modificar citas)
-- [ ] Agregar validaciones y confirmaciones
+### Fase 2: Acciones (Pendiente)
+- [ ] Tools de escritura (crear/modificar citas)
+- [ ] Confirmaciones antes de acciones destructivas
 - [ ] Logging de todas las acciones
 
-### Fase 3: Integraciones
+### Fase 3: Integraciones (Pendiente)
 - [ ] Conectar con WhatsApp Business API
-- [ ] Implementar recordatorios automáticos
-- [ ] Widget de chat en dashboard
+- [ ] Recordatorios automáticos
+- [ ] Notificaciones push
 
-### Fase 4: Inteligencia
+### Fase 4: Inteligencia (Pendiente)
 - [ ] Análisis de patrones (horarios preferidos)
 - [ ] Sugerencias proactivas
 - [ ] Detección de anomalías
@@ -112,26 +137,11 @@ interface TabataTools {
 
 ## Consideraciones de Seguridad
 
-- Tabata solo puede acceder a datos de la organización del usuario autenticado
-- Todas las acciones destructivas requieren confirmación
-- Registro completo de auditoría
-- Rate limiting por usuario
-- No exponer información sensible (contraseñas, tokens)
+- Tabata solo accede a datos de la organización del usuario autenticado
+- Actualmente solo puede CONSULTAR, no modificar datos
+- Todo el historial está vinculado al userId
+- El conocimiento se guarda por organizationId
 
 ---
 
-## Notas de Implementación
-
-```
-[ESPACIO RESERVADO PARA NOTAS DE DESARROLLO]
-
-- Modelo a utilizar: [Por definir]
-- Proveedor: [Por definir]
-- Contexto máximo: [Por definir]
-- Estrategia de memoria: [Por definir]
-```
-
----
-
-*Documento creado: Noviembre 2024*
 *Última actualización: Noviembre 2024*
