@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Users, DollarSign, Receipt, TrendingUp, Calendar } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Users, DollarSign, Receipt, TrendingUp, Calendar, ChevronDown } from "lucide-react";
 import {
   Scorecard,
   PatientsLineChart,
@@ -9,6 +9,8 @@ import {
   UpcomingAppointments,
 } from "@/components/dashboard";
 import { formatCOP } from "@/lib/utils";
+import { format, subDays, startOfYear, startOfMonth, subMonths } from "date-fns";
+import { es } from "date-fns/locale";
 
 interface DashboardData {
   activePatients: number;
@@ -44,11 +46,17 @@ interface DashboardData {
   }[];
 }
 
-const dateRanges = [
+interface DateRange {
+  startDate: Date;
+  endDate: Date;
+}
+
+const presetRanges = [
   { label: "Última semana", value: "7d" },
   { label: "Último mes", value: "30d" },
   { label: "Últimos 3 meses", value: "90d" },
   { label: "Este año", value: "year" },
+  { label: "Personalizado", value: "custom" },
 ];
 
 // Mock data generator based on date range
@@ -94,28 +102,94 @@ function getMockData(range: string): DashboardData {
   };
 }
 
+// Helper to get dates from preset
+function getDateRangeFromPreset(preset: string): DateRange {
+  const today = new Date();
+  switch (preset) {
+    case "7d":
+      return { startDate: subDays(today, 7), endDate: today };
+    case "30d":
+      return { startDate: subDays(today, 30), endDate: today };
+    case "90d":
+      return { startDate: subMonths(today, 3), endDate: today };
+    case "year":
+      return { startDate: startOfYear(today), endDate: today };
+    default:
+      return { startDate: subDays(today, 30), endDate: today };
+  }
+}
+
 export default function DashboardPage() {
-  const [selectedRange, setSelectedRange] = useState("30d");
+  const [selectedPreset, setSelectedPreset] = useState("30d");
+  const [dateRange, setDateRange] = useState<DateRange>(getDateRangeFromPreset("30d"));
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [showCustomPicker, setShowCustomPicker] = useState(false);
   const [data, setData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+        setShowCustomPicker(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 300));
-    setData(getMockData(selectedRange));
+    setData(getMockData(selectedPreset));
     setIsLoading(false);
-  }, [selectedRange]);
+  }, [selectedPreset, dateRange]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
+  const handlePresetSelect = (preset: string) => {
+    if (preset === "custom") {
+      setShowCustomPicker(true);
+    } else {
+      setSelectedPreset(preset);
+      setDateRange(getDateRangeFromPreset(preset));
+      setShowDropdown(false);
+      setShowCustomPicker(false);
+    }
+  };
+
+  const handleCustomDateChange = (type: "start" | "end", value: string) => {
+    const newDate = new Date(value);
+    if (type === "start") {
+      setDateRange(prev => ({ ...prev, startDate: newDate }));
+    } else {
+      setDateRange(prev => ({ ...prev, endDate: newDate }));
+    }
+  };
+
+  const applyCustomRange = () => {
+    setSelectedPreset("custom");
+    setShowDropdown(false);
+    setShowCustomPicker(false);
+  };
+
+  const getDisplayLabel = () => {
+    if (selectedPreset === "custom") {
+      return `${format(dateRange.startDate, "d MMM", { locale: es })} - ${format(dateRange.endDate, "d MMM yyyy", { locale: es })}`;
+    }
+    return presetRanges.find(r => r.value === selectedPreset)?.label || "";
+  };
+
   const scorecardData = data ? [
     {
       title: "Pacientes Activos",
       value: data.activePatients.toString(),
-      subtitle: dateRanges.find(r => r.value === selectedRange)?.label || "",
+      subtitle: getDisplayLabel(),
       change: data.activePatientsChange,
       icon: Users,
       iconColor: "bg-[#6B9080]",
@@ -164,19 +238,66 @@ export default function DashboardPage() {
             Resumen general del consultorio
           </p>
         </div>
-        <div className="flex items-center gap-2 bg-white border border-[#CCE3DE] rounded-lg px-3 py-2 shadow-sm">
-          <Calendar className="w-4 h-4 text-[#6B9080]" />
-          <select
-            value={selectedRange}
-            onChange={(e) => setSelectedRange(e.target.value)}
-            className="text-sm border-0 bg-transparent focus:outline-none focus:ring-0 text-[#3D5A4C] font-medium cursor-pointer"
+        <div className="relative" ref={dropdownRef}>
+          <button
+            onClick={() => setShowDropdown(!showDropdown)}
+            className="flex items-center gap-2 bg-white border border-[#CCE3DE] rounded-lg px-3 py-2 shadow-sm hover:border-[#6B9080] transition-colors"
           >
-            {dateRanges.map((range) => (
-              <option key={range.value} value={range.value}>
-                {range.label}
-              </option>
-            ))}
-          </select>
+            <Calendar className="w-4 h-4 text-[#6B9080]" />
+            <span className="text-sm text-[#3D5A4C] font-medium">{getDisplayLabel()}</span>
+            <ChevronDown className={`w-4 h-4 text-[#6B9080] transition-transform ${showDropdown ? "rotate-180" : ""}`} />
+          </button>
+
+          {showDropdown && (
+            <div className="absolute right-0 mt-2 bg-white border border-[#CCE3DE] rounded-lg shadow-lg z-50 min-w-[200px]">
+              {/* Preset options */}
+              <div className="py-1">
+                {presetRanges.map((range) => (
+                  <button
+                    key={range.value}
+                    onClick={() => handlePresetSelect(range.value)}
+                    className={`w-full text-left px-4 py-2 text-sm hover:bg-[#F6FFF8] transition-colors ${
+                      selectedPreset === range.value && range.value !== "custom"
+                        ? "bg-[#CCE3DE] text-[#3D5A4C] font-medium"
+                        : "text-[#5C7A6B]"
+                    }`}
+                  >
+                    {range.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Custom date picker */}
+              {showCustomPicker && (
+                <div className="border-t border-[#CCE3DE] p-4 space-y-3">
+                  <div>
+                    <label className="block text-xs text-[#5C7A6B] mb-1">Desde</label>
+                    <input
+                      type="date"
+                      value={format(dateRange.startDate, "yyyy-MM-dd")}
+                      onChange={(e) => handleCustomDateChange("start", e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-[#CCE3DE] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B9080] focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-[#5C7A6B] mb-1">Hasta</label>
+                    <input
+                      type="date"
+                      value={format(dateRange.endDate, "yyyy-MM-dd")}
+                      onChange={(e) => handleCustomDateChange("end", e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-[#CCE3DE] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B9080] focus:border-transparent"
+                    />
+                  </div>
+                  <button
+                    onClick={applyCustomRange}
+                    className="w-full py-2 bg-[#6B9080] text-white text-sm font-medium rounded-lg hover:bg-[#5a7a6d] transition-colors"
+                  >
+                    Aplicar
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
