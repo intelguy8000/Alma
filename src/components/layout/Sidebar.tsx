@@ -59,7 +59,7 @@ const menuItems = [
   { name: "Calendario", href: "/calendario", icon: Calendar },
   { name: "Citas", href: "/citas", icon: ClipboardList },
   { name: "Ventas", href: "/ventas", icon: DollarSign },
-  { name: "Compras & Gastos", href: "/gastos", icon: Receipt },
+  { name: "Compras & Gastos", href: "/compras-gastos", icon: Receipt },
   { name: "Proveedores", href: "/proveedores", icon: Truck },
   { name: "Inventario", href: "/inventario", icon: Package },
   { name: "Pacientes", href: "/pacientes", icon: Users },
