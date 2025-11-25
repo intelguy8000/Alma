@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -28,6 +28,22 @@ interface CalendarEvent {
   classNames?: string[];
 }
 
+interface APIAppointment {
+  id: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  type: "presencial" | "virtual" | "terapia_choque";
+  location: string | null;
+  status: "confirmada" | "no_responde" | "cancelada" | "reagendada" | "completada";
+  notes: string | null;
+  patient: {
+    id: string;
+    fullName: string;
+    patientCode: string;
+  };
+}
+
 // Color configuration by type
 const typeColors = {
   presencial: { bg: "#10B981", border: "#059669", text: "#ffffff" },
@@ -49,122 +65,79 @@ const getStatusClasses = (status: string): string[] => {
   }
 };
 
-// Mock appointments data
-const mockAppointments: CalendarEvent[] = [
-  {
-    id: "1",
-    title: "María García López",
-    start: new Date(new Date().setHours(9, 0, 0, 0)),
-    end: new Date(new Date().setHours(10, 0, 0, 0)),
-    backgroundColor: typeColors.presencial.bg,
-    borderColor: typeColors.presencial.border,
-    textColor: typeColors.presencial.text,
+// Convert API appointment to calendar event
+const appointmentToEvent = (apt: APIAppointment): CalendarEvent => {
+  const colors = typeColors[apt.type];
+  const date = new Date(apt.date);
+
+  // Parse time strings (format: "1970-01-01T09:00:00.000Z" or "09:00")
+  const parseTime = (timeStr: string) => {
+    if (timeStr.includes("T")) {
+      return timeStr.split("T")[1].substring(0, 5);
+    }
+    return timeStr.substring(0, 5);
+  };
+
+  const startTimeStr = parseTime(apt.startTime);
+  const endTimeStr = parseTime(apt.endTime);
+
+  const [startHour, startMin] = startTimeStr.split(":").map(Number);
+  const [endHour, endMin] = endTimeStr.split(":").map(Number);
+
+  const start = new Date(date);
+  start.setHours(startHour, startMin, 0, 0);
+
+  const end = new Date(date);
+  end.setHours(endHour, endMin, 0, 0);
+
+  return {
+    id: apt.id,
+    title: apt.patient.fullName,
+    start,
+    end,
+    backgroundColor: colors.bg,
+    borderColor: colors.border,
+    textColor: colors.text,
+    classNames: getStatusClasses(apt.status),
     extendedProps: {
-      patientId: "1",
-      patientName: "María García López",
-      type: "presencial",
-      location: "forum_1103",
-      status: "confirmada",
-      notes: "Primera consulta",
+      patientId: apt.patient.id,
+      patientName: apt.patient.fullName,
+      type: apt.type,
+      location: apt.location || "forum_1103",
+      status: apt.status,
+      notes: apt.notes || "",
     },
-  },
-  {
-    id: "2",
-    title: "Carlos Rodríguez",
-    start: new Date(new Date().setHours(11, 0, 0, 0)),
-    end: new Date(new Date().setHours(12, 0, 0, 0)),
-    backgroundColor: typeColors.virtual.bg,
-    borderColor: typeColors.virtual.border,
-    textColor: typeColors.virtual.text,
-    extendedProps: {
-      patientId: "2",
-      patientName: "Carlos Rodríguez",
-      type: "virtual",
-      location: "virtual",
-      status: "confirmada",
-      notes: "",
-    },
-  },
-  {
-    id: "3",
-    title: "Ana Martínez",
-    start: new Date(new Date().setHours(14, 0, 0, 0)),
-    end: new Date(new Date().setHours(15, 0, 0, 0)),
-    backgroundColor: typeColors.terapia_choque.bg,
-    borderColor: typeColors.terapia_choque.border,
-    textColor: typeColors.terapia_choque.text,
-    classNames: getStatusClasses("no_responde"),
-    extendedProps: {
-      patientId: "3",
-      patientName: "Ana Martínez",
-      type: "terapia_choque",
-      location: "la_ceja",
-      status: "no_responde",
-      notes: "Llamar para confirmar",
-    },
-  },
-  {
-    id: "4",
-    title: "José Hernández",
-    start: new Date(new Date().setHours(16, 0, 0, 0)),
-    end: new Date(new Date().setHours(17, 0, 0, 0)),
-    backgroundColor: typeColors.presencial.bg,
-    borderColor: typeColors.presencial.border,
-    textColor: typeColors.presencial.text,
-    classNames: getStatusClasses("cancelada"),
-    extendedProps: {
-      patientId: "4",
-      patientName: "José Hernández",
-      type: "presencial",
-      location: "forum_1103",
-      status: "cancelada",
-      notes: "Canceló por viaje",
-    },
-  },
-  // Tomorrow appointments
-  {
-    id: "5",
-    title: "Laura Sánchez",
-    start: addHours(new Date(new Date().setHours(10, 0, 0, 0)), 24),
-    end: addHours(new Date(new Date().setHours(11, 0, 0, 0)), 24),
-    backgroundColor: typeColors.presencial.bg,
-    borderColor: typeColors.presencial.border,
-    textColor: typeColors.presencial.text,
-    extendedProps: {
-      patientId: "5",
-      patientName: "Laura Sánchez",
-      type: "presencial",
-      location: "forum_1103",
-      status: "confirmada",
-      notes: "",
-    },
-  },
-  {
-    id: "6",
-    title: "Pedro González",
-    start: addHours(new Date(new Date().setHours(15, 0, 0, 0)), 24),
-    end: addHours(new Date(new Date().setHours(16, 0, 0, 0)), 24),
-    backgroundColor: typeColors.virtual.bg,
-    borderColor: typeColors.virtual.border,
-    textColor: typeColors.virtual.text,
-    classNames: getStatusClasses("completada"),
-    extendedProps: {
-      patientId: "6",
-      patientName: "Pedro González",
-      type: "virtual",
-      location: "virtual",
-      status: "completada",
-      notes: "Sesión de seguimiento",
-    },
-  },
-];
+  };
+};
 
 export function CalendarView() {
   const calendarRef = useRef<FullCalendar>(null);
-  const [events, setEvents] = useState<CalendarEvent[]>(mockAppointments);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit" | "view">("create");
   const [selectedEvent, setSelectedEvent] = useState<Partial<AppointmentData> | undefined>();
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch appointments from API
+  const fetchAppointments = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/appointments");
+      if (response.ok) {
+        const data: APIAppointment[] = await response.json();
+        const calendarEvents = data.map(appointmentToEvent);
+        setEvents(calendarEvents);
+      }
+    } catch (error) {
+      console.error("Error fetching appointments:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAppointments();
+  }, [fetchAppointments]);
 
   // Handle date/time selection (create new appointment)
   const handleDateSelect = (selectInfo: DateSelectArg) => {
@@ -191,157 +164,181 @@ export function CalendarView() {
 
     setSelectedEvent({
       id: event.id,
-      patientId: props.patientId,
-      patientName: props.patientName,
+      patientId: props.patientId as string,
+      patientName: props.patientName as string,
       date: event.start || new Date(),
       startTime: format(event.start || new Date(), "HH:mm"),
       endTime: format(event.end || addHours(event.start || new Date(), 1), "HH:mm"),
-      type: props.type,
-      location: props.location,
-      status: props.status,
-      notes: props.notes,
+      type: props.type as AppointmentData["type"],
+      location: props.location as string,
+      status: props.status as AppointmentData["status"],
+      notes: props.notes as string,
     });
     setModalMode("edit");
     setModalOpen(true);
   };
 
   // Handle event drop (drag & drop)
-  const handleEventDrop = (dropInfo: EventDropArg) => {
+  const handleEventDrop = async (dropInfo: EventDropArg) => {
     const { event } = dropInfo;
 
-    setEvents((prev) =>
-      prev.map((e) =>
-        e.id === event.id
-          ? {
-              ...e,
-              start: event.start || e.start,
-              end: event.end || e.end,
-            }
-          : e
-      )
-    );
+    try {
+      const newDate = format(event.start || new Date(), "yyyy-MM-dd");
+      const newStartTime = format(event.start || new Date(), "HH:mm");
+      const newEndTime = format(event.end || addHours(event.start || new Date(), 1), "HH:mm");
 
-    // In real app, would save to database here
-    console.log("Event moved:", event.id, event.start, event.end);
+      const response = await fetch(`/api/appointments/${event.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date: newDate,
+          startTime: newStartTime,
+          endTime: newEndTime,
+        }),
+      });
+
+      if (!response.ok) {
+        // Revert on error
+        dropInfo.revert();
+        console.error("Error updating appointment");
+      } else {
+        // Refresh to get updated data
+        fetchAppointments();
+      }
+    } catch (error) {
+      dropInfo.revert();
+      console.error("Error updating appointment:", error);
+    }
   };
 
   // Handle save from modal
-  const handleSave = (data: AppointmentData) => {
-    const colors = typeColors[data.type];
-    const [startHour, startMin] = data.startTime.split(":").map(Number);
-    const [endHour, endMin] = data.endTime.split(":").map(Number);
+  const handleSave = async (data: AppointmentData) => {
+    try {
+      if (modalMode === "create") {
+        const response = await fetch("/api/appointments", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            patientId: data.patientId,
+            date: format(data.date, "yyyy-MM-dd"),
+            startTime: data.startTime,
+            endTime: data.endTime,
+            type: data.type,
+            location: data.location,
+            status: data.status,
+            notes: data.notes,
+          }),
+        });
 
-    const startDate = new Date(data.date);
-    startDate.setHours(startHour, startMin, 0, 0);
+        if (!response.ok) {
+          const error = await response.json();
+          alert(error.error || "Error al crear cita");
+          return;
+        }
+      } else if (modalMode === "edit" && data.id) {
+        const response = await fetch(`/api/appointments/${data.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            patientId: data.patientId,
+            date: format(data.date, "yyyy-MM-dd"),
+            startTime: data.startTime,
+            endTime: data.endTime,
+            type: data.type,
+            location: data.location,
+            status: data.status,
+            notes: data.notes,
+          }),
+        });
 
-    const endDate = new Date(data.date);
-    endDate.setHours(endHour, endMin, 0, 0);
+        if (!response.ok) {
+          const error = await response.json();
+          alert(error.error || "Error al actualizar cita");
+          return;
+        }
+      }
 
-    if (modalMode === "create") {
-      const newEvent: CalendarEvent = {
-        id: Date.now().toString(),
-        title: data.patientName,
-        start: startDate,
-        end: endDate,
-        backgroundColor: colors.bg,
-        borderColor: colors.border,
-        textColor: colors.text,
-        classNames: getStatusClasses(data.status),
-        extendedProps: {
-          patientId: data.patientId,
-          patientName: data.patientName,
-          type: data.type,
-          location: data.location,
-          status: data.status,
-          notes: data.notes,
-        },
-      };
-      setEvents((prev) => [...prev, newEvent]);
-    } else if (modalMode === "edit" && data.id) {
-      setEvents((prev) =>
-        prev.map((e) =>
-          e.id === data.id
-            ? {
-                ...e,
-                title: data.patientName,
-                start: startDate,
-                end: endDate,
-                backgroundColor: colors.bg,
-                borderColor: colors.border,
-                textColor: colors.text,
-                classNames: getStatusClasses(data.status),
-                extendedProps: {
-                  patientId: data.patientId,
-                  patientName: data.patientName,
-                  type: data.type,
-                  location: data.location,
-                  status: data.status,
-                  notes: data.notes,
-                },
-              }
-            : e
-        )
-      );
+      // Refresh appointments
+      fetchAppointments();
+    } catch (error) {
+      console.error("Error saving appointment:", error);
+      alert("Error al guardar cita");
     }
   };
 
   // Handle delete
-  const handleDelete = (id: string) => {
-    setEvents((prev) => prev.filter((e) => e.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await fetch(`/api/appointments/${id}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        fetchAppointments();
+      }
+    } catch (error) {
+      console.error("Error deleting appointment:", error);
+    }
   };
 
   return (
     <>
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 calendar-container">
-        <FullCalendar
-          ref={calendarRef}
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          initialView="timeGridWeek"
-          headerToolbar={{
-            left: "prev,next today",
-            center: "title",
-            right: "dayGridMonth,timeGridWeek,timeGridDay",
-          }}
-          locale="es"
-          buttonText={{
-            today: "Hoy",
-            month: "Mes",
-            week: "Semana",
-            day: "Día",
-          }}
-          slotMinTime="07:00:00"
-          slotMaxTime="20:00:00"
-          slotDuration="00:30:00"
-          allDaySlot={false}
-          weekends={true}
-          selectable={true}
-          selectMirror={true}
-          editable={true}
-          eventDurationEditable={false}
-          events={events}
-          select={handleDateSelect}
-          eventClick={handleEventClick}
-          eventDrop={handleEventDrop}
-          height="calc(100vh - 200px)"
-          nowIndicator={true}
-          eventDisplay="block"
-          expandRows={true}
-          stickyHeaderDates={true}
-          eventTimeFormat={{
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false,
-          }}
-          slotLabelFormat={{
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false,
-          }}
-          dayHeaderFormat={{
-            weekday: "short",
-            day: "numeric",
-          }}
-        />
+        {isLoading ? (
+          <div className="h-[calc(100vh-200px)] flex items-center justify-center">
+            <div className="text-gray-500">Cargando citas...</div>
+          </div>
+        ) : (
+          <FullCalendar
+            ref={calendarRef}
+            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+            initialView="timeGridWeek"
+            headerToolbar={{
+              left: "prev,next today",
+              center: "title",
+              right: "dayGridMonth,timeGridWeek,timeGridDay",
+            }}
+            locale="es"
+            buttonText={{
+              today: "Hoy",
+              month: "Mes",
+              week: "Semana",
+              day: "Día",
+            }}
+            slotMinTime="07:00:00"
+            slotMaxTime="20:00:00"
+            slotDuration="00:30:00"
+            allDaySlot={false}
+            weekends={true}
+            selectable={true}
+            selectMirror={true}
+            editable={true}
+            eventDurationEditable={false}
+            events={events}
+            select={handleDateSelect}
+            eventClick={handleEventClick}
+            eventDrop={handleEventDrop}
+            height="calc(100vh - 200px)"
+            nowIndicator={true}
+            eventDisplay="block"
+            expandRows={true}
+            stickyHeaderDates={true}
+            eventTimeFormat={{
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            }}
+            slotLabelFormat={{
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            }}
+            dayHeaderFormat={{
+              weekday: "short",
+              day: "numeric",
+            }}
+          />
+        )}
       </div>
 
       <AppointmentModal

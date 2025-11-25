@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
 import {
   X,
   Calendar,
@@ -16,6 +15,7 @@ import {
   AlertCircle,
   XCircle,
   RefreshCw,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -41,17 +41,11 @@ interface AppointmentModalProps {
   mode: "create" | "edit" | "view";
 }
 
-// Mock patients for the selector
-const mockPatients = [
-  { id: "1", name: "María García López", code: "MDA-0001" },
-  { id: "2", name: "Carlos Rodríguez", code: "MDA-0002" },
-  { id: "3", name: "Ana Martínez", code: "MDA-0003" },
-  { id: "4", name: "José Hernández", code: "MDA-0004" },
-  { id: "5", name: "Laura Sánchez Pérez", code: "MDA-0005" },
-  { id: "6", name: "Pedro González", code: "MDA-0006" },
-  { id: "7", name: "Sofía Ramírez", code: "MDA-0007" },
-  { id: "8", name: "Miguel Torres", code: "MDA-0008" },
-];
+interface Patient {
+  id: string;
+  fullName: string;
+  patientCode: string;
+}
 
 const locations = [
   { value: "forum_1103", label: "Forum 1103" },
@@ -96,6 +90,8 @@ export function AppointmentModal({
 
   const [patientSearch, setPatientSearch] = useState("");
   const [showPatientDropdown, setShowPatientDropdown] = useState(false);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [isSearchingPatients, setIsSearchingPatients] = useState(false);
 
   useEffect(() => {
     if (initialData) {
@@ -110,20 +106,56 @@ export function AppointmentModal({
     }
   }, [initialData]);
 
-  const filteredPatients = mockPatients.filter(
-    (p) =>
-      p.name.toLowerCase().includes(patientSearch.toLowerCase()) ||
-      p.code.toLowerCase().includes(patientSearch.toLowerCase())
-  );
+  // Search patients from API
+  const searchPatients = useCallback(async (query: string) => {
+    if (query.length < 2) {
+      setPatients([]);
+      return;
+    }
 
-  const handlePatientSelect = (patient: typeof mockPatients[0]) => {
+    setIsSearchingPatients(true);
+    try {
+      const response = await fetch(`/api/patients?search=${encodeURIComponent(query)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setPatients(data);
+      }
+    } catch (error) {
+      console.error("Error searching patients:", error);
+    } finally {
+      setIsSearchingPatients(false);
+    }
+  }, []);
+
+  // Debounced patient search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (patientSearch && !formData.patientId) {
+        searchPatients(patientSearch);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [patientSearch, formData.patientId, searchPatients]);
+
+  const handlePatientSelect = (patient: Patient) => {
     setFormData((prev) => ({
       ...prev,
       patientId: patient.id,
-      patientName: patient.name,
+      patientName: patient.fullName,
     }));
-    setPatientSearch(patient.name);
+    setPatientSearch(patient.fullName);
     setShowPatientDropdown(false);
+    setPatients([]);
+  };
+
+  const handleClearPatient = () => {
+    setFormData((prev) => ({
+      ...prev,
+      patientId: "",
+      patientName: "",
+    }));
+    setPatientSearch("");
+    setPatients([]);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -177,64 +209,89 @@ export function AppointmentModal({
                 value={patientSearch}
                 onChange={(e) => {
                   setPatientSearch(e.target.value);
+                  if (formData.patientId) {
+                    handleClearPatient();
+                  }
                   setShowPatientDropdown(true);
                 }}
-                onFocus={() => setShowPatientDropdown(true)}
+                onFocus={() => patientSearch.length >= 2 && setShowPatientDropdown(true)}
                 placeholder="Buscar paciente..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                className="w-full pl-10 pr-10 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 disabled={isViewMode}
                 required
               />
+              {formData.patientId && !isViewMode && (
+                <button
+                  type="button"
+                  onClick={handleClearPatient}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded"
+                >
+                  <X className="w-4 h-4 text-gray-400" />
+                </button>
+              )}
+              {isSearchingPatients && (
+                <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 animate-spin" />
+              )}
             </div>
-            {showPatientDropdown && patientSearch && !isViewMode && (
+            {showPatientDropdown && !formData.patientId && !isViewMode && (
               <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                {filteredPatients.length > 0 ? (
-                  filteredPatients.map((patient) => (
+                {isSearchingPatients ? (
+                  <div className="px-4 py-2 text-sm text-gray-500 text-center">
+                    Buscando...
+                  </div>
+                ) : patients.length > 0 ? (
+                  patients.map((patient) => (
                     <button
                       key={patient.id}
                       type="button"
                       onClick={() => handlePatientSelect(patient)}
                       className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center justify-between"
                     >
-                      <span className="text-sm text-gray-900">{patient.name}</span>
-                      <span className="text-xs text-gray-400">{patient.code}</span>
+                      <span className="text-sm text-gray-900">{patient.fullName}</span>
+                      <span className="text-xs text-gray-400">{patient.patientCode}</span>
                     </button>
                   ))
-                ) : (
+                ) : patientSearch.length >= 2 ? (
                   <div className="px-4 py-2 text-sm text-gray-500">
                     No se encontraron pacientes
+                  </div>
+                ) : (
+                  <div className="px-4 py-2 text-sm text-gray-500">
+                    Escribe al menos 2 caracteres
                   </div>
                 )}
               </div>
             )}
           </div>
 
-          {/* Date and Time Row */}
+          {/* Date */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Fecha
+            </label>
+            <div className="relative">
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="date"
+                value={format(formData.date, "yyyy-MM-dd")}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    date: new Date(e.target.value + "T12:00:00"),
+                  }))
+                }
+                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                disabled={isViewMode}
+                required
+              />
+            </div>
+          </div>
+
+          {/* Start and End Time Row */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Fecha
-              </label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="date"
-                  value={format(formData.date, "yyyy-MM-dd")}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      date: new Date(e.target.value + "T12:00:00"),
-                    }))
-                  }
-                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                  disabled={isViewMode}
-                  required
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Hora
+                Hora inicio
               </label>
               <div className="relative">
                 <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -243,19 +300,50 @@ export function AppointmentModal({
                   value={formData.startTime}
                   onChange={(e) => {
                     const start = e.target.value;
-                    const [hours, minutes] = start.split(":").map(Number);
-                    const endHours = hours + 1;
-                    const end = `${endHours.toString().padStart(2, "0")}:${minutes
-                      .toString()
-                      .padStart(2, "0")}`;
+                    // Auto-adjust end time if it's before start time
+                    const [startHours, startMinutes] = start.split(":").map(Number);
+                    const [endHours, endMinutes] = formData.endTime.split(":").map(Number);
+                    const startTotal = startHours * 60 + startMinutes;
+                    const endTotal = endHours * 60 + endMinutes;
+
+                    let newEndTime = formData.endTime;
+                    if (endTotal <= startTotal) {
+                      // Set end time to 1 hour after start
+                      const newEndHours = startHours + 1;
+                      newEndTime = `${newEndHours.toString().padStart(2, "0")}:${startMinutes.toString().padStart(2, "0")}`;
+                    }
+
                     setFormData((prev) => ({
                       ...prev,
                       startTime: start,
-                      endTime: end,
+                      endTime: newEndTime,
                     }));
                   }}
                   min="07:00"
                   max="20:00"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  disabled={isViewMode}
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Hora fin
+              </label>
+              <div className="relative">
+                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="time"
+                  value={formData.endTime}
+                  onChange={(e) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      endTime: e.target.value,
+                    }));
+                  }}
+                  min={formData.startTime}
+                  max="21:00"
                   className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   disabled={isViewMode}
                   required
