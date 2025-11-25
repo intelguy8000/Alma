@@ -7,43 +7,7 @@ import { SalesTable } from "@/components/ventas/SalesTable";
 import { SaleModal } from "@/components/ventas/SaleModal";
 import { SaleDetailModal } from "@/components/ventas/SaleDetailModal";
 import { formatCOP } from "@/lib/utils";
-
-interface Sale {
-  id: string;
-  date: string;
-  amount: number;
-  paymentMethod: string;
-  paymentNote: string | null;
-  createdAt: string;
-  appointment: {
-    id: string;
-    date: string;
-    startTime: string;
-    endTime: string;
-    type: string;
-    patient: {
-      id: string;
-      fullName: string;
-      patientCode: string;
-    };
-  } | null;
-  bankAccount: {
-    id: string;
-    alias: string;
-    bankName: string | null;
-    accountNumber: string | null;
-  } | null;
-  createdBy: {
-    id: string;
-    fullName: string;
-  };
-}
-
-interface Patient {
-  id: string;
-  fullName: string;
-  patientCode: string;
-}
+import type { Sale, Patient, SaleFormData } from "@/types/sales";
 
 const DEFAULT_AMOUNT = 332000;
 
@@ -130,7 +94,7 @@ export default function VentasPage() {
     setPatients([]);
   };
 
-  const handleCreateSale = async (saleData: Partial<Sale>) => {
+  const handleCreateSale = async (saleData: SaleFormData) => {
     const response = await fetch("/api/sales", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -145,7 +109,7 @@ export default function VentasPage() {
     fetchSales();
   };
 
-  const handleEditSale = async (saleData: Partial<Sale>) => {
+  const handleEditSale = async (saleData: SaleFormData) => {
     const response = await fetch(`/api/sales/${saleData.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },

@@ -4,37 +4,7 @@ import { X, Calendar, User, CreditCard, Banknote, FileText } from "lucide-react"
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { formatCOP } from "@/lib/utils";
-
-interface Sale {
-  id: string;
-  date: string;
-  amount: number;
-  paymentMethod: string;
-  paymentNote: string | null;
-  createdAt: string;
-  appointment: {
-    id: string;
-    date: string;
-    startTime: string;
-    endTime: string;
-    type: string;
-    patient: {
-      id: string;
-      fullName: string;
-      patientCode: string;
-    };
-  } | null;
-  bankAccount: {
-    id: string;
-    alias: string;
-    bankName: string | null;
-    accountNumber: string | null;
-  } | null;
-  createdBy: {
-    id: string;
-    fullName: string;
-  };
-}
+import type { Sale } from "@/types/sales";
 
 interface SaleDetailModalProps {
   isOpen: boolean;

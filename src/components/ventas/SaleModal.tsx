@@ -5,46 +5,12 @@ import { X, Search } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { formatCOP } from "@/lib/utils";
-
-interface Patient {
-  id: string;
-  fullName: string;
-  patientCode: string;
-}
-
-interface Appointment {
-  id: string;
-  date: string;
-  startTime: string;
-  patient: Patient;
-}
-
-interface BankAccount {
-  id: string;
-  alias: string;
-  bankName: string | null;
-}
-
-interface Sale {
-  id?: string;
-  appointmentId?: string | null;
-  amount: number;
-  paymentMethod: string;
-  paymentNote?: string | null;
-  bankAccountId?: string | null;
-  date?: string;
-  appointment?: {
-    id: string;
-    date: string;
-    startTime: string;
-    patient: Patient;
-  } | null;
-}
+import type { Sale, Patient, BankAccount, AvailableAppointment, SaleFormData } from "@/types/sales";
 
 interface SaleModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (sale: Partial<Sale>) => Promise<void>;
+  onSave: (sale: SaleFormData) => Promise<void>;
   sale?: Sale | null;
   defaultAmount?: number;
 }
@@ -59,7 +25,7 @@ export function SaleModal({
   defaultAmount = DEFAULT_AMOUNT,
 }: SaleModalProps) {
   const [patients, setPatients] = useState<Patient[]>([]);
-  const [availableAppointments, setAvailableAppointments] = useState<Appointment[]>([]);
+  const [availableAppointments, setAvailableAppointments] = useState<AvailableAppointment[]>([]);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [patientSearch, setPatientSearch] = useState("");
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
@@ -202,15 +168,16 @@ export function SaleModal({
 
     setIsLoading(true);
     try {
-      await onSave({
+      const saleFormData: SaleFormData = {
         id: sale?.id,
         appointmentId: formData.appointmentId || null,
         amount: formData.amount,
         paymentMethod: formData.paymentMethod,
         paymentNote: formData.paymentNote || null,
-        bankAccountId: formData.paymentMethod === "transferencia" ? formData.bankAccountId : null,
+        bankAccountId: formData.paymentMethod === "transferencia" ? (formData.bankAccountId || null) : null,
         date: formData.date,
-      });
+      };
+      await onSave(saleFormData);
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al guardar");
