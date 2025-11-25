@@ -52,12 +52,19 @@ const parseTime = (timeStr: string): string => {
   return timeStr.substring(0, 5);
 };
 
+// Parse date string avoiding timezone issues
+const parseLocalDate = (dateStr: string): Date => {
+  const cleanDate = dateStr.split("T")[0]; // Get just "YYYY-MM-DD"
+  const [year, month, day] = cleanDate.split("-").map(Number);
+  return new Date(year, month - 1, day); // month is 0-indexed
+};
+
 // Convert API appointment to component format
 const apiToAppointment = (apt: APIAppointment, locations: Location[]): Appointment => {
   const location = locations.find(l => l.id === apt.location);
   return {
     id: apt.id,
-    date: new Date(apt.date),
+    date: parseLocalDate(apt.date),
     startTime: parseTime(apt.startTime),
     endTime: parseTime(apt.endTime),
     patientId: apt.patient.id,

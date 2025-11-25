@@ -68,7 +68,11 @@ const getStatusClasses = (status: string): string[] => {
 // Convert API appointment to calendar event
 const appointmentToEvent = (apt: APIAppointment): CalendarEvent => {
   const colors = typeColors[apt.type];
-  const date = new Date(apt.date);
+
+  // Parse date string to avoid timezone issues
+  // apt.date can be "2025-11-26" or "2025-11-26T00:00:00.000Z"
+  const dateStr = apt.date.split("T")[0]; // Get just "YYYY-MM-DD"
+  const [year, month, day] = dateStr.split("-").map(Number);
 
   // Parse time strings (format: "1970-01-01T09:00:00.000Z" or "09:00")
   const parseTime = (timeStr: string) => {
@@ -84,11 +88,9 @@ const appointmentToEvent = (apt: APIAppointment): CalendarEvent => {
   const [startHour, startMin] = startTimeStr.split(":").map(Number);
   const [endHour, endMin] = endTimeStr.split(":").map(Number);
 
-  const start = new Date(date);
-  start.setHours(startHour, startMin, 0, 0);
-
-  const end = new Date(date);
-  end.setHours(endHour, endMin, 0, 0);
+  // Create dates using local timezone (month is 0-indexed)
+  const start = new Date(year, month - 1, day, startHour, startMin, 0, 0);
+  const end = new Date(year, month - 1, day, endHour, endMin, 0, 0);
 
   return {
     id: apt.id,
