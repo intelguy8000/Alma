@@ -319,8 +319,6 @@ export function AppointmentModal({
                       endTime: newEndTime,
                     }));
                   }}
-                  min="07:00"
-                  max="20:00"
                   className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   disabled={isViewMode}
                   required
@@ -343,7 +341,6 @@ export function AppointmentModal({
                     }));
                   }}
                   min={formData.startTime}
-                  max="21:00"
                   className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   disabled={isViewMode}
                   required

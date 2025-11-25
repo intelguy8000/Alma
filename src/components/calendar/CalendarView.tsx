@@ -305,8 +305,8 @@ export function CalendarView() {
               week: "Semana",
               day: "Día",
             }}
-            slotMinTime="07:00:00"
-            slotMaxTime="20:00:00"
+            slotMinTime="05:00:00"
+            slotMaxTime="22:00:00"
             slotDuration="00:30:00"
             allDaySlot={false}
             weekends={true}
