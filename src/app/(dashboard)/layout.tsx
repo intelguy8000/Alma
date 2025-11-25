@@ -1,6 +1,6 @@
 "use client";
 
-import { Sidebar, SidebarProvider, Header, useSidebar } from "@/components/layout";
+import { Sidebar, SidebarProvider, MobileMenuButton, useSidebar } from "@/components/layout";
 import TabataChat from "@/components/chat/TabataChat";
 import { cn } from "@/lib/utils";
 
@@ -10,14 +10,17 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-gray-50">
       <Sidebar />
+      {/* Mobile menu button - only visible on mobile */}
+      <div className="lg:hidden fixed top-4 left-4 z-50">
+        <MobileMenuButton />
+      </div>
       <div
         className={cn(
           "flex flex-col min-h-screen transition-all duration-300",
           isExpanded ? "lg:ml-64" : "lg:ml-[72px]"
         )}
       >
-        <Header />
-        <main className="flex-1 p-4 lg:p-6">{children}</main>
+        <main className="flex-1 p-4 pt-16 lg:p-6 lg:pt-6">{children}</main>
       </div>
       <TabataChat />
     </div>
