@@ -7,7 +7,290 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
-// Schema will be defined after database setup
+// ===========================================
+// MULTI-TENANT CORE
+// ===========================================
+
+model Organization {
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  logoUrl      String?
+  primaryColor String?
+  createdAt    DateTime @default(now())
+
+  // Relations
+  users              User[]
+  patients           Patient[]
+  appointments       Appointment[]
+  sales              Sale[]
+  bankAccounts       BankAccount[]
+  expenses           Expense[]
+  providers          Provider[]
+  inventoryItems     InventoryItem[]
+  settings           Setting[]
+
+  @@index([slug])
+}
+
+// ===========================================
+// USER MANAGEMENT
+// ===========================================
+
+enum UserRole {
+  admin
+  secretary
+  viewer
+}
+
+model User {
+  id                String    @id @default(cuid())
+  organizationId    String
+  email             String    @unique
+  passwordHash      String
+  fullName          String
+  role              UserRole  @default(viewer)
+  isActive          Boolean   @default(true)
+  resetToken        String?
+  resetTokenExpires DateTime?
+  createdAt         DateTime  @default(now())
+
+  // Relations
+  organization       Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  salesCreated       Sale[]              @relation("SaleCreatedBy")
+  inventoryMovements InventoryMovement[] @relation("MovementCreatedBy")
+
+  @@index([organizationId])
+  @@index([email])
+  @@index([resetToken])
+}
+
+// ===========================================
+// PATIENT MANAGEMENT
+// ===========================================
+
+model Patient {
+  id                   String    @id @default(cuid())
+  organizationId       String
+  patientCode          String    @unique
+  fullName             String
+  phone                String?
+  whatsapp             String?
+  email                String?
+  notes                String?
+  isActive             Boolean   @default(true)
+  firstAppointmentDate DateTime?
+  createdAt            DateTime  @default(now())
+
+  // Relations
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+
+  @@index([organizationId])
+  @@index([patientCode])
+  @@index([organizationId, isActive])
+  @@index([organizationId, fullName])
+}
+
+// ===========================================
+// APPOINTMENTS
+// ===========================================
+
+enum AppointmentType {
+  presencial
+  virtual
+  terapia_choque
+}
+
+enum AppointmentStatus {
+  confirmada
+  no_responde
+  cancelada
+  reagendada
+  completada
+}
+
+model Appointment {
+  id              String            @id @default(cuid())
+  organizationId  String
+  patientId       String
+  date            DateTime          @db.Date
+  startTime       DateTime          @db.Time()
+  endTime         DateTime          @db.Time()
+  type            AppointmentType   @default(presencial)
+  location        String?
+  status          AppointmentStatus @default(confirmada)
+  rescheduledToId String?           @unique
+  notes           String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  // Relations
+  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  patient       Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  rescheduledTo Appointment? @relation("RescheduledAppointment", fields: [rescheduledToId], references: [id])
+  rescheduledFrom Appointment? @relation("RescheduledAppointment")
+  sales         Sale[]
+
+  @@index([organizationId])
+  @@index([patientId])
+  @@index([organizationId, date])
+  @@index([organizationId, status])
+  @@index([date, startTime])
+}
+
+// ===========================================
+// SALES & FINANCES
+// ===========================================
+
+enum PaymentMethod {
+  efectivo
+  transferencia
+  otro
+}
+
+model Sale {
+  id            String        @id @default(cuid())
+  organizationId String
+  appointmentId String?
+  amount        Decimal       @db.Decimal(10, 2)
+  paymentMethod PaymentMethod @default(efectivo)
+  paymentNote   String?
+  bankAccountId String?
+  date          DateTime      @db.Date
+  createdById   String
+  createdAt     DateTime      @default(now())
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  appointment  Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  bankAccount  BankAccount? @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
+  createdBy    User         @relation("SaleCreatedBy", fields: [createdById], references: [id])
+
+  @@index([organizationId])
+  @@index([organizationId, date])
+  @@index([appointmentId])
+  @@index([createdById])
+}
+
+model BankAccount {
+  id            String   @id @default(cuid())
+  organizationId String
+  alias         String
+  accountNumber String?
+  bankName      String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sales        Sale[]
+
+  @@index([organizationId])
+  @@index([organizationId, isActive])
+}
+
+model Expense {
+  id             String   @id @default(cuid())
+  organizationId String
+  description    String
+  amount         Decimal  @db.Decimal(10, 2)
+  category       String?
+  date           DateTime @db.Date
+  providerId     String?
+  createdAt      DateTime @default(now())
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  provider     Provider?    @relation(fields: [providerId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([organizationId, date])
+  @@index([organizationId, category])
+  @@index([providerId])
+}
+
+model Provider {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  contactName    String?
+  phone          String?
+  email          String?
+  notes          String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  expenses     Expense[]
+
+  @@index([organizationId])
+  @@index([organizationId, isActive])
+}
+
+// ===========================================
+// INVENTORY
+// ===========================================
+
+model InventoryItem {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  currentStock   Decimal  @default(0) @db.Decimal(10, 2)
+  minStock       Decimal  @default(0) @db.Decimal(10, 2)
+  unit           String?
+  category       String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  // Relations
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  movements    InventoryMovement[]
+
+  @@index([organizationId])
+  @@index([organizationId, isActive])
+  @@index([organizationId, category])
+}
+
+enum MovementType {
+  entrada
+  salida
+}
+
+model InventoryMovement {
+  id              String       @id @default(cuid())
+  inventoryItemId String
+  type            MovementType
+  quantity        Decimal      @db.Decimal(10, 2)
+  reason          String?
+  createdById     String
+  createdAt       DateTime     @default(now())
+
+  // Relations
+  inventoryItem InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  createdBy     User          @relation("MovementCreatedBy", fields: [createdById], references: [id])
+
+  @@index([inventoryItemId])
+  @@index([createdById])
+  @@index([inventoryItemId, createdAt])
+}
+
+// ===========================================
+// SETTINGS
+// ===========================================
+
+model Setting {
+  id             String @id @default(cuid())
+  organizationId String
+  key            String
+  value          String
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, key])
+  @@index([organizationId])
+}
