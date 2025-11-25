@@ -93,6 +93,8 @@ export default function CitasPage() {
   const [completeModalOpen, setCompleteModalOpen] = useState(false);
   const [completeTarget, setCompleteTarget] = useState<Appointment | null>(null);
 
+  const [locationsLoaded, setLocationsLoaded] = useState(false);
+
   // Fetch locations
   const fetchLocations = useCallback(async () => {
     try {
@@ -103,11 +105,13 @@ export default function CitasPage() {
       }
     } catch (error) {
       console.error("Error fetching locations:", error);
+    } finally {
+      setLocationsLoaded(true);
     }
   }, []);
 
   // Fetch appointments from API
-  const fetchAppointments = useCallback(async () => {
+  const fetchAppointments = useCallback(async (currentLocations: Location[]) => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams();
@@ -119,7 +123,7 @@ export default function CitasPage() {
       const response = await fetch(`/api/appointments?${params.toString()}`);
       if (response.ok) {
         const data: APIAppointment[] = await response.json();
-        const converted = data.map(apt => apiToAppointment(apt, locations));
+        const converted = data.map(apt => apiToAppointment(apt, currentLocations));
         setAppointments(converted);
       }
     } catch (error) {
@@ -127,17 +131,19 @@ export default function CitasPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [filters, locations]);
+  }, [filters]);
 
+  // Initial load: fetch locations once
   useEffect(() => {
     fetchLocations();
   }, [fetchLocations]);
 
+  // Fetch appointments when locations are loaded or filters change
   useEffect(() => {
-    if (locations.length > 0 || !isLoading) {
-      fetchAppointments();
+    if (locationsLoaded) {
+      fetchAppointments(locations);
     }
-  }, [fetchAppointments, locations.length, isLoading]);
+  }, [locationsLoaded, filters, fetchAppointments, locations]);
 
   // Calculate scorecards from current data
   const scorecards = {
@@ -197,7 +203,7 @@ export default function CitasPage() {
       });
 
       if (response.ok) {
-        fetchAppointments();
+        fetchAppointments(locations);
       }
     } catch (error) {
       console.error("Error updating status:", error);
@@ -250,7 +256,7 @@ export default function CitasPage() {
         }
       }
 
-      fetchAppointments();
+      fetchAppointments(locations);
       setAppointmentModalOpen(false);
     } catch (error) {
       console.error("Error saving appointment:", error);
@@ -265,7 +271,7 @@ export default function CitasPage() {
       });
 
       if (response.ok) {
-        fetchAppointments();
+        fetchAppointments(locations);
       }
     } catch (error) {
       console.error("Error deleting appointment:", error);
@@ -303,7 +309,7 @@ export default function CitasPage() {
         }),
       });
 
-      fetchAppointments();
+      fetchAppointments(locations);
       setRescheduleTarget(null);
       setRescheduleModalOpen(false);
     } catch (error) {
@@ -337,7 +343,7 @@ export default function CitasPage() {
         });
       }
 
-      fetchAppointments();
+      fetchAppointments(locations);
       setCompleteTarget(null);
       setCompleteModalOpen(false);
     } catch (error) {
