@@ -24,6 +24,14 @@ const typeLabels: Record<string, string> = {
   terapia_choque: "Terapia de Choque",
 };
 
+// Parse date string to local Date avoiding timezone issues
+const parseLocalDate = (dateStr: string): Date => {
+  // If it's an ISO string like "2025-11-26T00:00:00.000Z", extract just the date part
+  const cleanDate = dateStr.includes("T") ? dateStr.split("T")[0] : dateStr;
+  const [year, month, day] = cleanDate.split("-").map(Number);
+  return new Date(year, month - 1, day); // month is 0-indexed
+};
+
 export function SaleDetailModal({ isOpen, onClose, sale }: SaleDetailModalProps) {
   if (!isOpen || !sale) return null;
 
@@ -54,7 +62,7 @@ export function SaleDetailModal({ isOpen, onClose, sale }: SaleDetailModalProps)
             <div>
               <p className="text-sm text-[#5C7A6B]">Fecha de venta</p>
               <p className="text-[#2D3D35] font-medium">
-                {format(new Date(sale.date), "d 'de' MMMM, yyyy", { locale: es })}
+                {format(parseLocalDate(sale.date), "d 'de' MMMM, yyyy", { locale: es })}
               </p>
             </div>
           </div>
@@ -80,7 +88,7 @@ export function SaleDetailModal({ isOpen, onClose, sale }: SaleDetailModalProps)
               <div>
                 <p className="text-sm text-[#5C7A6B]">Cita asociada</p>
                 <p className="text-[#2D3D35] font-medium">
-                  {format(new Date(sale.appointment.date), "d MMM yyyy", { locale: es })} -{" "}
+                  {format(parseLocalDate(sale.appointment.date), "d MMM yyyy", { locale: es })} -{" "}
                   {sale.appointment.startTime.includes("T")
                     ? sale.appointment.startTime.split("T")[1].substring(0, 5)
                     : sale.appointment.startTime.substring(0, 5)}

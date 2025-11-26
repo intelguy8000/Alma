@@ -22,6 +22,14 @@ const paymentMethodLabels: Record<string, { label: string; color: string }> = {
   otro: { label: "Otro", color: "bg-[#F5E6D3] text-[#8B6914]" },
 };
 
+// Parse date string to local Date avoiding timezone issues
+const parseLocalDate = (dateStr: string): Date => {
+  // If it's an ISO string like "2025-11-26T00:00:00.000Z", extract just the date part
+  const cleanDate = dateStr.includes("T") ? dateStr.split("T")[0] : dateStr;
+  const [year, month, day] = cleanDate.split("-").map(Number);
+  return new Date(year, month - 1, day); // month is 0-indexed
+};
+
 function ActionMenu({
   sale,
   onView,
@@ -162,7 +170,7 @@ export function SalesTable({
                   className="border-b border-[#CCE3DE] last:border-0 hover:bg-[#CCE3DE]/20"
                 >
                   <td className="px-4 py-3 text-sm text-[#3D5A4C]">
-                    {format(new Date(sale.date), "d MMM yyyy", { locale: es })}
+                    {format(parseLocalDate(sale.date), "d MMM yyyy", { locale: es })}
                   </td>
                   <td className="px-4 py-3">
                     <div>
@@ -177,7 +185,7 @@ export function SalesTable({
                   <td className="px-4 py-3 text-sm text-[#5C7A6B]">
                     {sale.appointment ? (
                       <span>
-                        {format(new Date(sale.appointment.date), "d MMM", { locale: es })} -{" "}
+                        {format(parseLocalDate(sale.appointment.date), "d MMM", { locale: es })} -{" "}
                         {sale.appointment.startTime.includes("T")
                           ? sale.appointment.startTime.split("T")[1].substring(0, 5)
                           : sale.appointment.startTime.substring(0, 5)}
