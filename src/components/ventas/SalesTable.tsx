@@ -136,18 +136,18 @@ export function SalesTable({
   return (
     <div className="bg-[#F6FFF8] rounded-lg border border-[#CCE3DE] overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="data-table w-full">
           <thead>
             <tr className="border-b border-[#CCE3DE] bg-[#CCE3DE]/30">
-              <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Fecha</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Paciente</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Cita asociada</th>
-              <th className="px-4 py-3 text-right text-sm font-medium text-[#3D5A4C]">Monto</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Método</th>
-              <th className="px-4 py-3 text-center text-sm font-medium text-[#3D5A4C]">Factura E.</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Cuenta</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Registrado por</th>
-              <th className="px-4 py-3 text-center text-sm font-medium text-[#3D5A4C]">Acciones</th>
+              <th className="text-left text-sm font-medium text-[#3D5A4C]">Fecha</th>
+              <th className="text-left text-sm font-medium text-[#3D5A4C]">Paciente</th>
+              <th className="text-left text-sm font-medium text-[#3D5A4C]">Cita asociada</th>
+              <th className="text-right text-sm font-medium text-[#3D5A4C]">Monto</th>
+              <th className="text-left text-sm font-medium text-[#3D5A4C]">Método</th>
+              <th className="text-center text-sm font-medium text-[#3D5A4C]">Factura E.</th>
+              <th className="text-left text-sm font-medium text-[#3D5A4C]">Cuenta</th>
+              <th className="text-left text-sm font-medium text-[#3D5A4C]">Registrado por</th>
+              <th className="text-center text-sm font-medium text-[#3D5A4C]">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -162,20 +162,20 @@ export function SalesTable({
                   key={sale.id}
                   className="border-b border-[#CCE3DE] last:border-0 hover:bg-[#CCE3DE]/20"
                 >
-                  <td className="px-4 py-3 text-sm text-[#3D5A4C]">
+                  <td className="text-sm text-[#3D5A4C] whitespace-nowrap">
                     {format(parseLocalDate(sale.date), "d MMM yyyy", { locale: es })}
                   </td>
-                  <td className="px-4 py-3">
-                    <div>
-                      <p className="text-sm font-medium text-[#2D3D35]">
+                  <td>
+                    <div className="cell-with-subtitle cell-truncate" title={sale.patient.fullName}>
+                      <span className="text-sm font-medium text-[#2D3D35] truncate">
                         {sale.patient.fullName}
-                      </p>
-                      <p className="text-xs text-[#5C7A6B]">
+                      </span>
+                      <span className="subtitle">
                         {sale.patient.patientCode}
-                      </p>
+                      </span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-sm text-[#5C7A6B]">
+                  <td className="text-sm text-[#5C7A6B] whitespace-nowrap">
                     {sale.appointment ? (
                       <span>
                         {format(parseLocalDate(sale.appointment.date), "d MMM", { locale: es })} -{" "}
@@ -185,19 +185,19 @@ export function SalesTable({
                       "-"
                     )}
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    <span className="text-sm font-semibold text-[#2E7D32]">
+                  <td className="text-right">
+                    <span className="text-sm font-semibold text-[#2E7D32] whitespace-nowrap">
                       {formatCOP(sale.amount)}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td>
                     <span
                       className={`px-2 py-1 text-xs font-medium rounded-full ${methodInfo.color}`}
                     >
                       {methodInfo.label}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="text-center">
                     <button
                       onClick={() => onToggleInvoice?.(sale.id, sale.hasElectronicInvoice)}
                       className="p-1 rounded-md hover:bg-[#CCE3DE]/50 transition-colors cursor-pointer"
@@ -210,13 +210,15 @@ export function SalesTable({
                       )}
                     </button>
                   </td>
-                  <td className="px-4 py-3 text-sm text-[#5C7A6B]">
+                  <td className="text-sm text-[#5C7A6B]">
                     {sale.bankAccount ? sale.bankAccount.alias : "-"}
                   </td>
-                  <td className="px-4 py-3 text-sm text-[#5C7A6B]">
-                    {sale.createdBy.fullName}
+                  <td className="text-sm text-[#5C7A6B]">
+                    <span className="cell-truncate-sm block" title={sale.createdBy.fullName}>
+                      {sale.createdBy.fullName}
+                    </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td>
                     <div className="flex justify-center">
                       <ActionMenu
                         sale={sale}

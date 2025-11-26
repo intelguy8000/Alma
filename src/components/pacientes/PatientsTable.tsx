@@ -176,19 +176,19 @@ export function PatientsTable({
   return (
     <div className="bg-card rounded-lg border overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="data-table w-full">
           <thead>
             <tr className="border-b bg-muted/50">
-              <th className="px-4 py-3 text-left text-sm font-medium">Código</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">Nombre</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">Teléfono</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">WhatsApp</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">Email</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">Estado</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">Primera Cita</th>
-              <th className="px-4 py-3 text-center text-sm font-medium">Citas</th>
-              <th className="px-4 py-3 text-right text-sm font-medium">Total</th>
-              <th className="px-4 py-3 text-center text-sm font-medium">Acciones</th>
+              <th className="text-left text-sm font-medium">Código</th>
+              <th className="text-left text-sm font-medium">Nombre</th>
+              <th className="text-left text-sm font-medium">Teléfono</th>
+              <th className="text-left text-sm font-medium">WhatsApp</th>
+              <th className="text-left text-sm font-medium">Email</th>
+              <th className="text-left text-sm font-medium">Estado</th>
+              <th className="text-left text-sm font-medium">Primera Cita</th>
+              <th className="text-center text-sm font-medium">Citas</th>
+              <th className="text-right text-sm font-medium">Total</th>
+              <th className="text-center text-sm font-medium">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -201,15 +201,15 @@ export function PatientsTable({
                 key={patient.id}
                 className={`border-b last:border-0 ${
                   isDuplicate
-                    ? "bg-red-50 hover:bg-red-100 border-l-4 border-l-red-400"
+                    ? "row-duplicate"
                     : "hover:bg-muted/30"
                 }`}
               >
-                <td className="px-4 py-3">
+                <td>
                   <div className="flex items-center gap-2">
                     {isDuplicate && (
                       <span title={`Duplicado de: ${duplicateOf}`}>
-                        <AlertTriangle className="h-4 w-4 text-red-500" />
+                        <AlertTriangle className="h-4 w-4 text-red-500 flex-shrink-0" />
                       </span>
                     )}
                     <span className={`font-mono text-sm ${isDuplicate ? "text-red-600" : "text-primary"}`}>
@@ -217,28 +217,30 @@ export function PatientsTable({
                     </span>
                   </div>
                 </td>
-                <td className="px-4 py-3">
-                  <div className="flex flex-col">
-                    <span className={`font-medium ${isDuplicate ? "text-red-700" : ""}`}>
+                <td>
+                  <div className="cell-with-subtitle cell-truncate" title={patient.fullName}>
+                    <span className={`font-medium truncate ${isDuplicate ? "text-red-700" : ""}`}>
                       {patient.fullName}
                     </span>
                     {isDuplicate && (
-                      <span className="text-xs text-red-500">
-                        Duplicado de: {duplicateOf}
+                      <span className="subtitle truncate" title={`Duplicado de: ${duplicateOf}`}>
+                        Dup: {duplicateOf}
                       </span>
                     )}
                   </div>
                 </td>
-                <td className="px-4 py-3 text-sm text-muted-foreground">
+                <td className="text-sm text-muted-foreground">
                   {patient.phone || "-"}
                 </td>
-                <td className="px-4 py-3 text-sm text-muted-foreground">
+                <td className="text-sm text-muted-foreground">
                   {patient.whatsapp || "-"}
                 </td>
-                <td className="px-4 py-3 text-sm text-muted-foreground">
-                  {patient.email || "-"}
+                <td className="text-sm text-muted-foreground">
+                  <span className="cell-truncate-sm block" title={patient.email || ""}>
+                    {patient.email || "-"}
+                  </span>
                 </td>
-                <td className="px-4 py-3">
+                <td>
                   <span
                     className={`px-2 py-1 text-xs font-medium rounded-full ${
                       patient.isActive
@@ -249,22 +251,22 @@ export function PatientsTable({
                     {patient.isActive ? "Activo" : "Inactivo"}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-sm text-muted-foreground">
+                <td className="text-sm text-muted-foreground whitespace-nowrap">
                   {patient.firstAppointmentDate
                     ? format(new Date(patient.firstAppointmentDate), "d MMM yyyy", {
                         locale: es,
                       })
                     : "-"}
                 </td>
-                <td className="px-4 py-3 text-center">
+                <td className="text-center">
                   <span className="font-medium">{patient.totalAppointments}</span>
                 </td>
-                <td className="px-4 py-3 text-right">
-                  <span className="font-medium text-emerald-600">
+                <td className="text-right">
+                  <span className="font-medium text-emerald-600 whitespace-nowrap">
                     {formatCOP(patient.totalSpent)}
                   </span>
                 </td>
-                <td className="px-4 py-3">
+                <td>
                   <div className="flex justify-center">
                     <ActionMenu
                       patient={patient}

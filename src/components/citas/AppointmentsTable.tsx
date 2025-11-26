@@ -111,31 +111,31 @@ export function AppointmentsTable({
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="data-table w-full">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-100">
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Fecha
               </th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Hora
               </th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Paciente
               </th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Tipo
               </th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Ubicación
               </th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Estado
               </th>
-              <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 WhatsApp
               </th>
-              <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Acciones
               </th>
             </tr>
@@ -152,39 +152,43 @@ export function AppointmentsTable({
                   className="hover:bg-gray-50 transition-colors"
                 >
                   {/* Date */}
-                  <td className="px-4 py-3">
-                    <div className="text-sm font-medium text-gray-900">
-                      {format(appointment.date, "dd/MM/yyyy")}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {format(appointment.date, "EEEE", { locale: es })}
+                  <td>
+                    <div className="cell-with-subtitle">
+                      <span className="text-sm font-medium text-gray-900">
+                        {format(appointment.date, "dd/MM/yyyy")}
+                      </span>
+                      <span className="subtitle">
+                        {format(appointment.date, "EEEE", { locale: es })}
+                      </span>
                     </div>
                   </td>
 
                   {/* Time */}
-                  <td className="px-4 py-3">
+                  <td>
                     <span className="text-sm text-gray-900">
                       {appointment.startTime}
                     </span>
                   </td>
 
                   {/* Patient */}
-                  <td className="px-4 py-3">
-                    <div className="text-sm font-medium text-gray-900">
-                      {appointment.patientName}
+                  <td>
+                    <div className="cell-with-subtitle cell-truncate" title={appointment.patientName}>
+                      <span className="text-sm font-medium text-gray-900 truncate">
+                        {appointment.patientName}
+                      </span>
+                      {appointment.patientPhone && (
+                        <span className="subtitle">
+                          {appointment.patientPhone}
+                        </span>
+                      )}
                     </div>
-                    {appointment.patientPhone && (
-                      <div className="text-xs text-gray-500">
-                        {appointment.patientPhone}
-                      </div>
-                    )}
                   </td>
 
                   {/* Type */}
-                  <td className="px-4 py-3">
+                  <td>
                     <span
                       className={cn(
-                        "inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border",
+                        "inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border whitespace-nowrap",
                         typeInfo.color
                       )}
                     >
@@ -194,14 +198,14 @@ export function AppointmentsTable({
                   </td>
 
                   {/* Location */}
-                  <td className="px-4 py-3">
-                    <span className="text-sm text-gray-700">
+                  <td>
+                    <span className="text-sm text-gray-700 cell-truncate-sm block" title={appointment.locationLabel}>
                       {appointment.locationLabel}
                     </span>
                   </td>
 
                   {/* Status - Editable dropdown */}
-                  <td className="px-4 py-3">
+                  <td>
                     <div className="relative">
                       <button
                         onClick={() =>
@@ -256,7 +260,7 @@ export function AppointmentsTable({
                   </td>
 
                   {/* WhatsApp Column */}
-                  <td className="px-4 py-3">
+                  <td>
                     <div className="flex justify-center">
                       <button
                         onClick={() => handleWhatsAppCopy(appointment)}
@@ -278,7 +282,7 @@ export function AppointmentsTable({
                   </td>
 
                   {/* Actions */}
-                  <td className="px-4 py-3">
+                  <td>
                     <div className="flex items-center justify-end gap-1">
                       {/* Edit */}
                       <button

@@ -379,3 +379,76 @@
     min-width: 800px;
   }
 }
+
+/* ========================================
+   UNIFORM TABLE STYLES (Excel-like)
+   ======================================== */
+
+/* Data table base styles */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table thead tr {
+  height: 48px;
+}
+
+.data-table tbody tr {
+  height: 56px;
+}
+
+.data-table th,
+.data-table td {
+  vertical-align: middle;
+  padding: 0 16px;
+}
+
+/* Truncate long text with ellipsis */
+.data-table .cell-truncate {
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.data-table .cell-truncate-sm {
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.data-table .cell-truncate-lg {
+  max-width: 280px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Duplicate row styling */
+.data-table tr.row-duplicate {
+  background-color: #FEF2F2;
+  border-left: 4px solid #F87171;
+}
+
+.data-table tr.row-duplicate:hover {
+  background-color: #FEE2E2;
+}
+
+/* Compact info in single line */
+.cell-with-subtitle {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0;
+  line-height: 1.2;
+}
+
+.cell-with-subtitle .subtitle {
+  font-size: 0.6875rem;
+  color: #5C7A6B;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

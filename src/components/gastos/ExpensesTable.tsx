@@ -115,15 +115,15 @@ export function ExpensesTable({
   return (
     <div className="bg-[#F6FFF8] rounded-lg border border-[#CCE3DE] overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="data-table w-full">
           <thead>
             <tr className="border-b border-[#CCE3DE] bg-[#CCE3DE]/30">
-              <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Fecha</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Descripción</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Categoría</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Proveedor</th>
-              <th className="px-4 py-3 text-right text-sm font-medium text-[#3D5A4C]">Monto</th>
-              <th className="px-4 py-3 text-center text-sm font-medium text-[#3D5A4C]">Acciones</th>
+              <th className="text-left text-sm font-medium text-[#3D5A4C]">Fecha</th>
+              <th className="text-left text-sm font-medium text-[#3D5A4C]">Descripción</th>
+              <th className="text-left text-sm font-medium text-[#3D5A4C]">Categoría</th>
+              <th className="text-left text-sm font-medium text-[#3D5A4C]">Proveedor</th>
+              <th className="text-right text-sm font-medium text-[#3D5A4C]">Monto</th>
+              <th className="text-center text-sm font-medium text-[#3D5A4C]">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -137,15 +137,15 @@ export function ExpensesTable({
                   key={expense.id}
                   className="border-b border-[#CCE3DE] last:border-0 hover:bg-[#CCE3DE]/20"
                 >
-                  <td className="px-4 py-3 text-sm text-[#3D5A4C]">
+                  <td className="text-sm text-[#3D5A4C] whitespace-nowrap">
                     {format(parseLocalDate(expense.date), "d MMM yyyy", { locale: es })}
                   </td>
-                  <td className="px-4 py-3">
-                    <p className="text-sm font-medium text-[#2D3D35]">
+                  <td>
+                    <span className="text-sm font-medium text-[#2D3D35] cell-truncate block" title={expense.description}>
                       {expense.description}
-                    </p>
+                    </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td>
                     {catInfo ? (
                       <span
                         className={`px-2 py-1 text-xs font-medium rounded-full ${catInfo.color}`}
@@ -156,15 +156,17 @@ export function ExpensesTable({
                       <span className="text-sm text-[#5C7A6B]">-</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-sm text-[#5C7A6B]">
-                    {expense.provider?.name || "-"}
+                  <td>
+                    <span className="text-sm text-[#5C7A6B] cell-truncate-sm block" title={expense.provider?.name || ""}>
+                      {expense.provider?.name || "-"}
+                    </span>
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    <span className="text-sm font-semibold text-[#C65D3B]">
+                  <td className="text-right">
+                    <span className="text-sm font-semibold text-[#C65D3B] whitespace-nowrap">
                       {formatCOP(expense.amount)}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td>
                     <div className="flex justify-center">
                       <ActionMenu
                         expense={expense}

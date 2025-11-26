@@ -130,16 +130,16 @@ export function InventoryTable({
   return (
     <div className="bg-[#F6FFF8] rounded-lg border border-[#CCE3DE] overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="data-table w-full">
           <thead>
             <tr className="border-b border-[#CCE3DE] bg-[#CCE3DE]/30">
-              <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Nombre</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Categoría</th>
-              <th className="px-4 py-3 text-right text-sm font-medium text-[#3D5A4C]">Stock actual</th>
-              <th className="px-4 py-3 text-right text-sm font-medium text-[#3D5A4C]">Stock mínimo</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Unidad</th>
-              <th className="px-4 py-3 text-center text-sm font-medium text-[#3D5A4C]">Estado</th>
-              <th className="px-4 py-3 text-center text-sm font-medium text-[#3D5A4C]">Acciones</th>
+              <th className="text-left text-sm font-medium text-[#3D5A4C]">Nombre</th>
+              <th className="text-left text-sm font-medium text-[#3D5A4C]">Categoría</th>
+              <th className="text-right text-sm font-medium text-[#3D5A4C]">Stock actual</th>
+              <th className="text-right text-sm font-medium text-[#3D5A4C]">Stock mínimo</th>
+              <th className="text-left text-sm font-medium text-[#3D5A4C]">Unidad</th>
+              <th className="text-center text-sm font-medium text-[#3D5A4C]">Estado</th>
+              <th className="text-center text-sm font-medium text-[#3D5A4C]">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -154,15 +154,15 @@ export function InventoryTable({
                   key={item.id}
                   className="border-b border-[#CCE3DE] last:border-0 hover:bg-[#CCE3DE]/20"
                 >
-                  <td className="px-4 py-3">
-                    <p className="text-sm font-medium text-[#2D3D35]">
+                  <td>
+                    <span className="text-sm font-medium text-[#2D3D35] cell-truncate block" title={item.name}>
                       {item.name}
-                    </p>
+                    </span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-[#5C7A6B]">
+                  <td className="text-sm text-[#5C7A6B]">
                     {item.category ? categoryLabels[item.category] || item.category : "-"}
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="text-right">
                     <span className={`text-sm font-semibold ${
                       status === "critico" ? "text-[#C62828]" :
                       status === "bajo" ? "text-[#E65100]" : "text-[#2D3D35]"
@@ -170,20 +170,20 @@ export function InventoryTable({
                       {currentStock}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right text-sm text-[#5C7A6B]">
+                  <td className="text-right text-sm text-[#5C7A6B]">
                     {minStock}
                   </td>
-                  <td className="px-4 py-3 text-sm text-[#5C7A6B]">
+                  <td className="text-sm text-[#5C7A6B]">
                     {item.unit || "-"}
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="text-center">
                     <span
                       className={`px-2 py-1 text-xs font-medium rounded-full ${statusInfo.color}`}
                     >
                       {statusInfo.label}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td>
                     <div className="flex justify-center">
                       <ActionMenu
                         item={item}

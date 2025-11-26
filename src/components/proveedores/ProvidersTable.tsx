@@ -140,16 +140,16 @@ export function ProvidersTable({
   return (
     <div className="bg-[#F6FFF8] rounded-lg border border-[#CCE3DE] overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="data-table w-full">
           <thead>
             <tr className="border-b border-[#CCE3DE] bg-[#CCE3DE]/30">
-              <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Nombre</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Contacto</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Teléfono</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-[#3D5A4C]">Email</th>
-              <th className="px-4 py-3 text-center text-sm font-medium text-[#3D5A4C]">Estado</th>
-              <th className="px-4 py-3 text-right text-sm font-medium text-[#3D5A4C]">Total compras</th>
-              <th className="px-4 py-3 text-center text-sm font-medium text-[#3D5A4C]">Acciones</th>
+              <th className="text-left text-sm font-medium text-[#3D5A4C]">Nombre</th>
+              <th className="text-left text-sm font-medium text-[#3D5A4C]">Contacto</th>
+              <th className="text-left text-sm font-medium text-[#3D5A4C]">Teléfono</th>
+              <th className="text-left text-sm font-medium text-[#3D5A4C]">Email</th>
+              <th className="text-center text-sm font-medium text-[#3D5A4C]">Estado</th>
+              <th className="text-right text-sm font-medium text-[#3D5A4C]">Total compras</th>
+              <th className="text-center text-sm font-medium text-[#3D5A4C]">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -158,15 +158,17 @@ export function ProvidersTable({
                 key={provider.id}
                 className="border-b border-[#CCE3DE] last:border-0 hover:bg-[#CCE3DE]/20"
               >
-                <td className="px-4 py-3">
-                  <p className="text-sm font-medium text-[#2D3D35]">
+                <td>
+                  <span className="text-sm font-medium text-[#2D3D35] cell-truncate block" title={provider.name}>
                     {provider.name}
-                  </p>
+                  </span>
                 </td>
-                <td className="px-4 py-3 text-sm text-[#5C7A6B]">
-                  {provider.contactName || "-"}
+                <td>
+                  <span className="text-sm text-[#5C7A6B] cell-truncate-sm block" title={provider.contactName || ""}>
+                    {provider.contactName || "-"}
+                  </span>
                 </td>
-                <td className="px-4 py-3">
+                <td>
                   {provider.phone ? (
                     <a
                       href={`tel:${provider.phone}`}
@@ -178,11 +180,12 @@ export function ProvidersTable({
                     <span className="text-sm text-[#5C7A6B]">-</span>
                   )}
                 </td>
-                <td className="px-4 py-3">
+                <td>
                   {provider.email ? (
                     <a
                       href={`mailto:${provider.email}`}
-                      className="text-sm text-[#6B9080] hover:underline"
+                      className="text-sm text-[#6B9080] hover:underline cell-truncate-sm block"
+                      title={provider.email}
                     >
                       {provider.email}
                     </a>
@@ -190,7 +193,7 @@ export function ProvidersTable({
                     <span className="text-sm text-[#5C7A6B]">-</span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-center">
+                <td className="text-center">
                   <span
                     className={`px-2 py-1 text-xs font-medium rounded-full ${
                       provider.isActive
@@ -201,12 +204,12 @@ export function ProvidersTable({
                     {provider.isActive ? "Activo" : "Inactivo"}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-right">
-                  <span className="text-sm font-semibold text-[#3D5A4C]">
+                <td className="text-right">
+                  <span className="text-sm font-semibold text-[#3D5A4C] whitespace-nowrap">
                     {formatCOP(provider.totalExpenses || 0)}
                   </span>
                 </td>
-                <td className="px-4 py-3">
+                <td>
                   <div className="flex justify-center">
                     <ActionMenu
                       provider={provider}
