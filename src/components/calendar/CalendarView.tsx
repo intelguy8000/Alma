@@ -287,7 +287,7 @@ export function CalendarView() {
     <>
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 calendar-container">
         {isLoading ? (
-          <div className="h-[calc(100vh-200px)] flex items-center justify-center">
+          <div className="h-[calc(100vh-160px)] flex items-center justify-center">
             <div className="text-gray-500">Cargando citas...</div>
           </div>
         ) : (
@@ -307,9 +307,9 @@ export function CalendarView() {
               week: "Semana",
               day: "Día",
             }}
-            slotMinTime="05:00:00"
-            slotMaxTime="22:00:00"
-            slotDuration="00:30:00"
+            slotMinTime="06:00:00"
+            slotMaxTime="21:00:00"
+            slotDuration="01:00:00"
             allDaySlot={false}
             weekends={true}
             selectable={true}
@@ -320,7 +320,7 @@ export function CalendarView() {
             select={handleDateSelect}
             eventClick={handleEventClick}
             eventDrop={handleEventDrop}
-            height="calc(100vh - 200px)"
+            height="calc(100vh - 160px)"
             nowIndicator={true}
             eventDisplay="block"
             expandRows={true}

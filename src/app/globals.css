@@ -239,3 +239,72 @@
 .fc .fc-highlight {
   background: rgba(107, 144, 128, 0.2);
 }
+
+/* Improved slot height for better readability */
+.fc .fc-timegrid-slot {
+  height: 80px !important;
+}
+
+.fc .fc-timegrid-slot-lane {
+  height: 80px !important;
+}
+
+/* Ensure minimum height for the calendar container */
+.calendar-container .fc {
+  min-height: 800px;
+}
+
+/* Larger, more readable events */
+.fc .fc-event {
+  font-size: 0.875rem !important;
+  padding: 4px 8px !important;
+  line-height: 1.4;
+}
+
+.fc .fc-event-title {
+  font-weight: 600;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+}
+
+.fc .fc-event-time {
+  font-size: 0.75rem;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+/* Better event content display */
+.fc .fc-timegrid-event .fc-event-main {
+  padding: 4px 6px;
+}
+
+.fc .fc-timegrid-event-harness {
+  margin-right: 2px !important;
+}
+
+/* Responsive slot heights */
+@media (max-width: 1024px) {
+  .fc .fc-timegrid-slot {
+    height: 60px !important;
+  }
+
+  .fc .fc-timegrid-slot-lane {
+    height: 60px !important;
+  }
+
+  .fc .fc-event {
+    font-size: 0.8125rem !important;
+    padding: 3px 6px !important;
+  }
+}
+
+@media (min-width: 1440px) {
+  .fc .fc-timegrid-slot {
+    height: 90px !important;
+  }
+
+  .fc .fc-timegrid-slot-lane {
+    height: 90px !important;
+  }
+}
