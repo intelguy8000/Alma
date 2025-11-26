@@ -349,16 +349,23 @@ export default function CitasPage() {
 
       // Register payment if requested
       if (registerPayment && paymentData) {
-        await fetch("/api/sales", {
+        const saleResponse = await fetch("/api/sales", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            patientId: completeTarget.patientId,
             appointmentId: completeTarget.id,
             amount: parseFloat(paymentData.amount.replace(/[^0-9.-]+/g, "")),
             paymentMethod: paymentData.method,
-            notes: paymentData.note,
+            paymentNote: paymentData.note,
           }),
         });
+
+        if (!saleResponse.ok) {
+          const error = await saleResponse.json();
+          alert(error.error || "Error al registrar el pago");
+          return;
+        }
       }
 
       fetchAppointments(locations);

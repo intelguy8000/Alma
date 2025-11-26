@@ -58,9 +58,9 @@ export function SaleModal({
           hasElectronicInvoice: sale.hasElectronicInvoice || false,
           date: sale.date ? new Date(sale.date).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
         });
-        if (sale.appointment?.patient) {
-          setSelectedPatientId(sale.appointment.patient.id);
-          setPatientSearch(sale.appointment.patient.fullName);
+        if (sale.patient) {
+          setSelectedPatientId(sale.patient.id);
+          setPatientSearch(sale.patient.fullName);
         }
       } else {
         setFormData({
@@ -154,6 +154,11 @@ export function SaleModal({
     e.preventDefault();
     setError("");
 
+    if (!selectedPatientId) {
+      setError("Selecciona un paciente");
+      return;
+    }
+
     if (!formData.amount || formData.amount <= 0) {
       setError("El monto debe ser mayor a 0");
       return;
@@ -173,6 +178,7 @@ export function SaleModal({
     try {
       const saleFormData: SaleFormData = {
         id: sale?.id,
+        patientId: selectedPatientId,
         appointmentId: formData.appointmentId || null,
         amount: formData.amount,
         paymentMethod: formData.paymentMethod,
@@ -218,7 +224,7 @@ export function SaleModal({
           {/* Patient Search */}
           <div className="relative">
             <label className="block text-sm font-medium text-[#3D5A4C] mb-1">
-              Paciente
+              Paciente <span className="text-[#E07A5F]">*</span>
             </label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#5C7A6B]" />

@@ -12,15 +12,16 @@ export interface Sale {
   paymentNote: string | null;
   hasElectronicInvoice: boolean;
   createdAt: string;
+  patientId: string;
   appointmentId?: string | null;
   bankAccountId?: string | null;
+  patient: Patient;
   appointment: {
     id: string;
     date: string;
     startTime: string;
     endTime: string;
     type: string;
-    patient: Patient;
   } | null;
   bankAccount: {
     id: string;
@@ -36,6 +37,7 @@ export interface Sale {
 
 export interface SaleFormData {
   id?: string;
+  patientId: string;
   appointmentId: string | null;
   amount: number;
   paymentMethod: string;

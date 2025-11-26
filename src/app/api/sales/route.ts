@@ -51,23 +51,20 @@ export async function GET(request: NextRequest) {
     }
 
     if (patientId) {
-      where.appointment = { patientId };
+      where.patientId = patientId;
     }
 
     const sales = await prisma.sale.findMany({
       where,
       include: {
-        appointment: {
-          include: {
-            patient: {
-              select: {
-                id: true,
-                fullName: true,
-                patientCode: true,
-              },
-            },
+        patient: {
+          select: {
+            id: true,
+            fullName: true,
+            patientCode: true,
           },
         },
+        appointment: true,
         bankAccount: {
           select: {
             id: true,
@@ -103,7 +100,14 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { appointmentId, amount, paymentMethod, paymentNote, bankAccountId, hasElectronicInvoice, date } = body;
+    const { patientId, appointmentId, amount, paymentMethod, paymentNote, bankAccountId, hasElectronicInvoice, date } = body;
+
+    if (!patientId) {
+      return NextResponse.json(
+        { error: "El paciente es requerido" },
+        { status: 400 }
+      );
+    }
 
     if (!amount || amount <= 0) {
       return NextResponse.json(
@@ -116,6 +120,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "El método de pago es requerido" },
         { status: 400 }
+      );
+    }
+
+    // Verify patient belongs to organization
+    const patient = await prisma.patient.findFirst({
+      where: {
+        id: patientId,
+        organizationId: session.user.organizationId,
+      },
+    });
+
+    if (!patient) {
+      return NextResponse.json(
+        { error: "Paciente no encontrado" },
+        { status: 404 }
       );
     }
 
@@ -156,6 +175,7 @@ export async function POST(request: NextRequest) {
     const sale = await prisma.sale.create({
       data: {
         organizationId: session.user.organizationId,
+        patientId,
         appointmentId: appointmentId || null,
         amount,
         paymentMethod,
@@ -166,17 +186,14 @@ export async function POST(request: NextRequest) {
         createdById: session.user.id,
       },
       include: {
-        appointment: {
-          include: {
-            patient: {
-              select: {
-                id: true,
-                fullName: true,
-                patientCode: true,
-              },
-            },
+        patient: {
+          select: {
+            id: true,
+            fullName: true,
+            patientCode: true,
           },
         },
+        appointment: true,
         bankAccount: true,
         createdBy: {
           select: {

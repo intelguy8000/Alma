@@ -60,20 +60,18 @@ export function SaleDetailModal({ isOpen, onClose, sale }: SaleDetailModalProps)
           </div>
 
           {/* Patient */}
-          {sale.appointment?.patient && (
-            <div className="flex items-start gap-3">
-              <User className="h-5 w-5 text-[#6B9080] mt-0.5" />
-              <div>
-                <p className="text-sm text-[#5C7A6B]">Paciente</p>
-                <p className="text-[#2D3D35] font-medium">
-                  {sale.appointment.patient.fullName}
-                </p>
-                <p className="text-xs text-[#5C7A6B]">
-                  {sale.appointment.patient.patientCode}
-                </p>
-              </div>
+          <div className="flex items-start gap-3">
+            <User className="h-5 w-5 text-[#6B9080] mt-0.5" />
+            <div>
+              <p className="text-sm text-[#5C7A6B]">Paciente</p>
+              <p className="text-[#2D3D35] font-medium">
+                {sale.patient.fullName}
+              </p>
+              <p className="text-xs text-[#5C7A6B]">
+                {sale.patient.patientCode}
+              </p>
             </div>
-          )}
+          </div>
 
           {/* Appointment */}
           {sale.appointment && (
@@ -82,7 +80,10 @@ export function SaleDetailModal({ isOpen, onClose, sale }: SaleDetailModalProps)
               <div>
                 <p className="text-sm text-[#5C7A6B]">Cita asociada</p>
                 <p className="text-[#2D3D35] font-medium">
-                  {format(new Date(sale.appointment.date), "d MMM yyyy", { locale: es })} - {sale.appointment.startTime.substring(0, 5)}
+                  {format(new Date(sale.appointment.date), "d MMM yyyy", { locale: es })} -{" "}
+                  {sale.appointment.startTime.includes("T")
+                    ? sale.appointment.startTime.split("T")[1].substring(0, 5)
+                    : sale.appointment.startTime.substring(0, 5)}
                 </p>
                 <p className="text-xs text-[#5C7A6B]">
                   {typeLabels[sale.appointment.type] || sale.appointment.type}

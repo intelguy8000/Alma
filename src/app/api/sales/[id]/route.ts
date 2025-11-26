@@ -21,11 +21,14 @@ export async function GET(
         organizationId: session.user.organizationId,
       },
       include: {
-        appointment: {
-          include: {
-            patient: true,
+        patient: {
+          select: {
+            id: true,
+            fullName: true,
+            patientCode: true,
           },
         },
+        appointment: true,
         bankAccount: true,
         createdBy: {
           select: {
@@ -65,7 +68,7 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { appointmentId, amount, paymentMethod, paymentNote, bankAccountId, hasElectronicInvoice, date } = body;
+    const { patientId, appointmentId, amount, paymentMethod, paymentNote, bankAccountId, hasElectronicInvoice, date } = body;
 
     // Verify sale belongs to organization
     const existingSale = await prisma.sale.findFirst({
@@ -80,6 +83,23 @@ export async function PUT(
         { error: "Venta no encontrada" },
         { status: 404 }
       );
+    }
+
+    // Verify patient if changing
+    if (patientId && patientId !== existingSale.patientId) {
+      const patient = await prisma.patient.findFirst({
+        where: {
+          id: patientId,
+          organizationId: session.user.organizationId,
+        },
+      });
+
+      if (!patient) {
+        return NextResponse.json(
+          { error: "Paciente no encontrado" },
+          { status: 404 }
+        );
+      }
     }
 
     // Verify appointment if changing
@@ -119,6 +139,7 @@ export async function PUT(
     const sale = await prisma.sale.update({
       where: { id },
       data: {
+        ...(patientId !== undefined && { patientId }),
         ...(appointmentId !== undefined && { appointmentId: appointmentId || null }),
         ...(amount !== undefined && { amount }),
         ...(paymentMethod !== undefined && { paymentMethod }),
@@ -128,17 +149,14 @@ export async function PUT(
         ...(date !== undefined && { date: new Date(date) }),
       },
       include: {
-        appointment: {
-          include: {
-            patient: {
-              select: {
-                id: true,
-                fullName: true,
-                patientCode: true,
-              },
-            },
+        patient: {
+          select: {
+            id: true,
+            fullName: true,
+            patientCode: true,
           },
         },
+        appointment: true,
         bankAccount: true,
         createdBy: {
           select: {

@@ -165,24 +165,22 @@ export function SalesTable({
                     {format(new Date(sale.date), "d MMM yyyy", { locale: es })}
                   </td>
                   <td className="px-4 py-3">
-                    {sale.appointment?.patient ? (
-                      <div>
-                        <p className="text-sm font-medium text-[#2D3D35]">
-                          {sale.appointment.patient.fullName}
-                        </p>
-                        <p className="text-xs text-[#5C7A6B]">
-                          {sale.appointment.patient.patientCode}
-                        </p>
-                      </div>
-                    ) : (
-                      <span className="text-sm text-[#5C7A6B]">-</span>
-                    )}
+                    <div>
+                      <p className="text-sm font-medium text-[#2D3D35]">
+                        {sale.patient.fullName}
+                      </p>
+                      <p className="text-xs text-[#5C7A6B]">
+                        {sale.patient.patientCode}
+                      </p>
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-sm text-[#5C7A6B]">
                     {sale.appointment ? (
                       <span>
                         {format(new Date(sale.appointment.date), "d MMM", { locale: es })} -{" "}
-                        {sale.appointment.startTime.substring(0, 5)}
+                        {sale.appointment.startTime.includes("T")
+                          ? sale.appointment.startTime.split("T")[1].substring(0, 5)
+                          : sale.appointment.startTime.substring(0, 5)}
                       </span>
                     ) : (
                       "-"
