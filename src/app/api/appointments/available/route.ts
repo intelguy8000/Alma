@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
     const where: Record<string, unknown> = {
       organizationId: session.user.organizationId,
-      status: "completada",
+      status: { in: ["completada", "confirmada"] },
       sales: {
         none: {},
       },

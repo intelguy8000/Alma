@@ -31,7 +31,9 @@ export function SaleModal({
   const [patientSearch, setPatientSearch] = useState("");
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [isLoadingPatients, setIsLoadingPatients] = useState(false);
+  const [isLoadingAppointments, setIsLoadingAppointments] = useState(false);
   const [showPatientDropdown, setShowPatientDropdown] = useState(false);
+  const [appointmentsMessage, setAppointmentsMessage] = useState("");
 
   const [formData, setFormData] = useState({
     appointmentId: "",
@@ -115,14 +117,34 @@ export function SaleModal({
   };
 
   const fetchAvailableAppointments = async (patientId: string) => {
+    setIsLoadingAppointments(true);
+    setAppointmentsMessage("");
     try {
-      const response = await fetch(`/api/appointments/available?patientId=${patientId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setAvailableAppointments(data);
+      // Fetch available appointments (completada/confirmada without sale)
+      const availableRes = await fetch(`/api/appointments/available?patientId=${patientId}`);
+
+      if (availableRes.ok) {
+        const availableData = await availableRes.json();
+        setAvailableAppointments(availableData);
+
+        if (availableData.length === 0) {
+          // Check if patient has any appointments at all
+          const allAptsRes = await fetch(`/api/appointments?patientId=${patientId}`);
+          if (allAptsRes.ok) {
+            const allApts = await allAptsRes.json();
+            if (allApts.length === 0) {
+              setAppointmentsMessage("Este paciente no tiene citas. Se creará venta sin cita asociada.");
+            } else {
+              setAppointmentsMessage("Todas las citas de este paciente ya tienen pago registrado.");
+            }
+          }
+        }
       }
     } catch (error) {
       console.error("Error fetching appointments:", error);
+      setAppointmentsMessage("Error al cargar citas");
+    } finally {
+      setIsLoadingAppointments(false);
     }
   };
 
@@ -280,21 +302,27 @@ export function SaleModal({
               <label className="block text-sm font-medium text-[#3D5A4C] mb-1">
                 Cita asociada
               </label>
-              <select
-                value={formData.appointmentId}
-                onChange={(e) => setFormData({ ...formData, appointmentId: e.target.value })}
-                className="w-full px-3 py-2 border border-[#CCE3DE] rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-[#6B9080] text-[#2D3D35]"
-              >
-                <option value="">Sin cita asociada</option>
-                {availableAppointments.map((apt) => (
-                  <option key={apt.id} value={apt.id}>
-                    {format(parseLocalDate(apt.date), "d MMM yyyy", { locale: es })} - {parseTimeToDisplay(apt.startTime)}
-                  </option>
-                ))}
-              </select>
-              {availableAppointments.length === 0 && (
+              {isLoadingAppointments ? (
+                <div className="w-full px-3 py-2 border border-[#CCE3DE] rounded-md bg-white text-[#5C7A6B] text-sm">
+                  Cargando citas...
+                </div>
+              ) : (
+                <select
+                  value={formData.appointmentId}
+                  onChange={(e) => setFormData({ ...formData, appointmentId: e.target.value })}
+                  className="w-full px-3 py-2 border border-[#CCE3DE] rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-[#6B9080] text-[#2D3D35]"
+                >
+                  <option value="">Sin cita asociada</option>
+                  {availableAppointments.map((apt) => (
+                    <option key={apt.id} value={apt.id}>
+                      {format(parseLocalDate(apt.date), "d MMM yyyy", { locale: es })} - {parseTimeToDisplay(apt.startTime)}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {!isLoadingAppointments && appointmentsMessage && (
                 <p className="text-xs text-[#5C7A6B] mt-1">
-                  No hay citas completadas sin venta registrada
+                  {appointmentsMessage}
                 </p>
               )}
             </div>
