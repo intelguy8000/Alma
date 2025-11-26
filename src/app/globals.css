@@ -310,3 +310,72 @@
     height: 140px !important;
   }
 }
+
+/* Column width improvements */
+.fc .fc-timegrid-col {
+  min-width: 140px !important;
+}
+
+.fc .fc-col-header-cell {
+  min-width: 140px !important;
+}
+
+/* Events take full column width */
+.fc .fc-timegrid-event {
+  width: calc(100% - 4px) !important;
+  left: 2px !important;
+  right: 2px !important;
+}
+
+/* Calendar container horizontal scroll */
+.calendar-container {
+  overflow-x: auto;
+}
+
+.calendar-container .fc {
+  min-width: 1100px;
+}
+
+/* Full width calendar */
+.fc .fc-view-harness {
+  width: 100% !important;
+}
+
+.fc .fc-timegrid {
+  width: 100% !important;
+}
+
+/* Time column fixed width */
+.fc .fc-timegrid-axis {
+  width: 60px !important;
+  min-width: 60px !important;
+}
+
+/* Responsive column widths */
+@media (min-width: 1400px) {
+  .fc .fc-timegrid-col {
+    min-width: 160px !important;
+  }
+
+  .fc .fc-col-header-cell {
+    min-width: 160px !important;
+  }
+
+  .calendar-container .fc {
+    min-width: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .fc .fc-timegrid-col {
+    min-width: 100px !important;
+  }
+
+  .fc .fc-col-header-cell {
+    min-width: 100px !important;
+  }
+
+  .calendar-container .fc {
+    min-width: 800px;
+  }
+}
