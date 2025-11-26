@@ -360,6 +360,65 @@ formatCOP(1660000); // "$1.660.000"
 
 ---
 
+## Manejo de Fechas
+
+### IMPORTANTE: Timezone Colombia (America/Bogota, UTC-5)
+
+**SIEMPRE usar helpers de `src/lib/dates.ts`**
+
+**NUNCA usar directamente:**
+- `new Date(dateStr).toISOString()` - Convierte a UTC, puede cambiar el día
+- `new Date().toISOString().split("T")[0]` - Mismo problema
+- `new Date(dateStr)` para fechas sin hora - Interpreta como UTC
+
+### Helpers disponibles:
+
+```typescript
+import {
+  parseLocalDate,      // String → Date local
+  parseDateToInput,    // String → "YYYY-MM-DD" para inputs
+  getTodayLocal,       // → "YYYY-MM-DD" de hoy
+  formatDBDate,        // Date → "YYYY-MM-DD" para BD
+  parseTimeToDisplay,  // "1970-01-01T09:00:00Z" → "09:00"
+  parseDateTime        // Para timestamps con hora (createdAt, etc)
+} from "@/lib/dates";
+```
+
+### Uso correcto:
+
+```typescript
+// ❌ INCORRECTO - puede cambiar de día
+const date = new Date(sale.date).toISOString().split("T")[0];
+
+// ✅ CORRECTO
+const date = parseDateToInput(sale.date);
+
+// ❌ INCORRECTO - puede dar día anterior
+const today = new Date().toISOString().split("T")[0];
+
+// ✅ CORRECTO
+const today = getTodayLocal();
+
+// ❌ INCORRECTO - formato puede mostrar día incorrecto
+{format(new Date(expense.date), "d MMM yyyy", { locale: es })}
+
+// ✅ CORRECTO
+{format(parseLocalDate(expense.date), "d MMM yyyy", { locale: es })}
+```
+
+### Cuándo usar cada helper:
+
+| Caso de uso | Helper |
+|-------------|--------|
+| Mostrar fecha en tabla/modal | `parseLocalDate()` + `format()` |
+| Input type="date" value | `parseDateToInput()` |
+| Fecha de hoy para form | `getTodayLocal()` |
+| Enviar fecha a API | `formatDBDate()` |
+| Mostrar hora de cita | `parseTimeToDisplay()` |
+| Timestamp con hora (createdAt) | `new Date()` está OK |
+
+---
+
 ## Flujos Principales
 
 ### 1. Crear y Completar Cita
@@ -416,6 +475,7 @@ Ventas → Nueva Venta → Seleccionar cita (opcional)
 - [ ] Accesibilidad básica (labels, aria-labels)
 - [ ] Mensajes en español
 - [ ] Conexión a API real (NO datos mock)
+- [ ] **Fechas: usar helpers de `src/lib/dates.ts`** (ver sección Manejo de Fechas)
 
 ### Específicos por rol:
 - [ ] Admin: acceso completo

@@ -18,6 +18,7 @@ import {
 } from "@/components/citas";
 import type { Appointment } from "@/components/citas";
 import { AppointmentModal, AppointmentData } from "@/components/calendar";
+import { parseLocalDate, parseTimeToDisplay, formatDBDate } from "@/lib/dates";
 
 interface APIAppointment {
   id: string;
@@ -44,29 +45,14 @@ interface Location {
   isActive: boolean;
 }
 
-// Parse time from API format
-const parseTime = (timeStr: string): string => {
-  if (timeStr.includes("T")) {
-    return timeStr.split("T")[1].substring(0, 5);
-  }
-  return timeStr.substring(0, 5);
-};
-
-// Parse date string avoiding timezone issues
-const parseLocalDate = (dateStr: string): Date => {
-  const cleanDate = dateStr.split("T")[0]; // Get just "YYYY-MM-DD"
-  const [year, month, day] = cleanDate.split("-").map(Number);
-  return new Date(year, month - 1, day); // month is 0-indexed
-};
-
 // Convert API appointment to component format
 const apiToAppointment = (apt: APIAppointment, locations: Location[]): Appointment => {
   const location = locations.find(l => l.id === apt.location);
   return {
     id: apt.id,
     date: parseLocalDate(apt.date),
-    startTime: parseTime(apt.startTime),
-    endTime: parseTime(apt.endTime),
+    startTime: parseTimeToDisplay(apt.startTime),
+    endTime: parseTimeToDisplay(apt.endTime),
     patientId: apt.patient.id,
     patientName: apt.patient.fullName,
     patientPhone: apt.patient.phone || apt.patient.whatsapp || "",
@@ -227,7 +213,7 @@ export default function CitasPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             patientId: data.patientId,
-            date: format(data.date, "yyyy-MM-dd"),
+            date: formatDBDate(data.date),
             startTime: data.startTime,
             endTime: data.endTime,
             type: data.type,
@@ -248,7 +234,7 @@ export default function CitasPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             patientId: data.patientId,
-            date: format(data.date, "yyyy-MM-dd"),
+            date: formatDBDate(data.date),
             startTime: data.startTime,
             endTime: data.endTime,
             type: data.type,
@@ -317,7 +303,7 @@ export default function CitasPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           patientId: rescheduleTarget.patientId,
-          date: format(newDate, "yyyy-MM-dd"),
+          date: formatDBDate(newDate),
           startTime: newTime,
           endTime: endTime,
           type: rescheduleTarget.type,

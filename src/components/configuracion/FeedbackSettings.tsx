@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { MessageSquareWarning, Download, Check, Clock, Sparkles, Trash2, Filter } from "lucide-react";
+import { getTodayLocal } from "@/lib/dates";
 
 interface Feedback {
   id: string;
@@ -100,7 +101,7 @@ export function FeedbackSettings() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `feedback-${new Date().toISOString().split("T")[0]}.csv`;
+        a.download = `feedback-${getTodayLocal()}.csv`;
         a.click();
         window.URL.revokeObjectURL(url);
       }

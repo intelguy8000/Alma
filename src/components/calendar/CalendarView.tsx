@@ -7,6 +7,7 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { EventClickArg, DateSelectArg, EventDropArg } from "@fullcalendar/core";
 import { format, addHours } from "date-fns";
+import { parseDateToInput, parseTimeToDisplay } from "@/lib/dates";
 import { AppointmentModal, AppointmentData } from "./AppointmentModal";
 
 interface CalendarEvent {
@@ -69,21 +70,13 @@ const getStatusClasses = (status: string): string[] => {
 const appointmentToEvent = (apt: APIAppointment): CalendarEvent => {
   const colors = typeColors[apt.type];
 
-  // Parse date string to avoid timezone issues
-  // apt.date can be "2025-11-26" or "2025-11-26T00:00:00.000Z"
-  const dateStr = apt.date.split("T")[0]; // Get just "YYYY-MM-DD"
+  // Parse date string to avoid timezone issues using centralized helper
+  const dateStr = parseDateToInput(apt.date);
   const [year, month, day] = dateStr.split("-").map(Number);
 
-  // Parse time strings (format: "1970-01-01T09:00:00.000Z" or "09:00")
-  const parseTime = (timeStr: string) => {
-    if (timeStr.includes("T")) {
-      return timeStr.split("T")[1].substring(0, 5);
-    }
-    return timeStr.substring(0, 5);
-  };
-
-  const startTimeStr = parseTime(apt.startTime);
-  const endTimeStr = parseTime(apt.endTime);
+  // Parse time strings using centralized helper
+  const startTimeStr = parseTimeToDisplay(apt.startTime);
+  const endTimeStr = parseTimeToDisplay(apt.endTime);
 
   const [startHour, startMin] = startTimeStr.split(":").map(Number);
   const [endHour, endMin] = endTimeStr.split(":").map(Number);

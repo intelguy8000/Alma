@@ -5,6 +5,7 @@ import { X, Phone, Mail, Building2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { formatCOP } from "@/lib/utils";
+import { parseLocalDate } from "@/lib/dates";
 import type { Provider } from "@/types/providers";
 import type { Expense } from "@/types/expenses";
 import { categoryLabels } from "@/types/expenses";
@@ -165,7 +166,7 @@ export function ProviderHistoryDrawer({
                                 {expense.description}
                               </p>
                               <p className="text-xs text-[#5C7A6B]">
-                                {format(new Date(expense.date), "d 'de' MMMM, yyyy", {
+                                {format(parseLocalDate(expense.date), "d 'de' MMMM, yyyy", {
                                   locale: es,
                                 })}
                               </p>

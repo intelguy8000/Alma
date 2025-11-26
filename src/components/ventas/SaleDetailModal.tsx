@@ -4,6 +4,7 @@ import { X, Calendar, User, CreditCard, Banknote, FileText } from "lucide-react"
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { formatCOP } from "@/lib/utils";
+import { parseLocalDate, parseTimeToDisplay } from "@/lib/dates";
 import type { Sale } from "@/types/sales";
 
 interface SaleDetailModalProps {
@@ -22,14 +23,6 @@ const typeLabels: Record<string, string> = {
   presencial: "Presencial",
   virtual: "Virtual",
   terapia_choque: "Terapia de Choque",
-};
-
-// Parse date string to local Date avoiding timezone issues
-const parseLocalDate = (dateStr: string): Date => {
-  // If it's an ISO string like "2025-11-26T00:00:00.000Z", extract just the date part
-  const cleanDate = dateStr.includes("T") ? dateStr.split("T")[0] : dateStr;
-  const [year, month, day] = cleanDate.split("-").map(Number);
-  return new Date(year, month - 1, day); // month is 0-indexed
 };
 
 export function SaleDetailModal({ isOpen, onClose, sale }: SaleDetailModalProps) {
@@ -89,9 +82,7 @@ export function SaleDetailModal({ isOpen, onClose, sale }: SaleDetailModalProps)
                 <p className="text-sm text-[#5C7A6B]">Cita asociada</p>
                 <p className="text-[#2D3D35] font-medium">
                   {format(parseLocalDate(sale.appointment.date), "d MMM yyyy", { locale: es })} -{" "}
-                  {sale.appointment.startTime.includes("T")
-                    ? sale.appointment.startTime.split("T")[1].substring(0, 5)
-                    : sale.appointment.startTime.substring(0, 5)}
+                  {parseTimeToDisplay(sale.appointment.startTime)}
                 </p>
                 <p className="text-xs text-[#5C7A6B]">
                   {typeLabels[sale.appointment.type] || sale.appointment.type}

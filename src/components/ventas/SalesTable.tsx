@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Eye, Pencil, Trash2, MoreHorizontal, FileCheck, FileX } from "lucide-react";
 import { formatCOP } from "@/lib/utils";
+import { parseLocalDate, parseTimeToDisplay } from "@/lib/dates";
 import type { Sale } from "@/types/sales";
 
 interface SalesTableProps {
@@ -20,14 +21,6 @@ const paymentMethodLabels: Record<string, { label: string; color: string }> = {
   efectivo: { label: "Efectivo", color: "bg-[#E8F5E9] text-[#2E7D32]" },
   transferencia: { label: "Transferencia", color: "bg-[#D4E5F7] text-[#2C5282]" },
   otro: { label: "Otro", color: "bg-[#F5E6D3] text-[#8B6914]" },
-};
-
-// Parse date string to local Date avoiding timezone issues
-const parseLocalDate = (dateStr: string): Date => {
-  // If it's an ISO string like "2025-11-26T00:00:00.000Z", extract just the date part
-  const cleanDate = dateStr.includes("T") ? dateStr.split("T")[0] : dateStr;
-  const [year, month, day] = cleanDate.split("-").map(Number);
-  return new Date(year, month - 1, day); // month is 0-indexed
 };
 
 function ActionMenu({
@@ -186,9 +179,7 @@ export function SalesTable({
                     {sale.appointment ? (
                       <span>
                         {format(parseLocalDate(sale.appointment.date), "d MMM", { locale: es })} -{" "}
-                        {sale.appointment.startTime.includes("T")
-                          ? sale.appointment.startTime.split("T")[1].substring(0, 5)
-                          : sale.appointment.startTime.substring(0, 5)}
+                        {parseTimeToDisplay(sale.appointment.startTime)}
                       </span>
                     ) : (
                       "-"

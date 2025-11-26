@@ -5,6 +5,7 @@ import { X, Search } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { formatCOP } from "@/lib/utils";
+import { parseDateToInput, getTodayLocal, parseLocalDate, parseTimeToDisplay } from "@/lib/dates";
 import type { Sale, Patient, BankAccount, AvailableAppointment, SaleFormData } from "@/types/sales";
 
 interface SaleModalProps {
@@ -39,37 +40,11 @@ export function SaleModal({
     paymentNote: "",
     bankAccountId: "",
     hasElectronicInvoice: false,
-    date: new Date().toISOString().split("T")[0],
+    date: getTodayLocal(),
   });
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-
-  // Parse date string to local YYYY-MM-DD format avoiding timezone issues
-  const parseLocalDate = (dateStr: string): string => {
-    // If it's already in YYYY-MM-DD format, return as is
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-      return dateStr;
-    }
-    // If it's an ISO string like "2025-11-26T00:00:00.000Z", extract just the date part
-    if (dateStr.includes("T")) {
-      return dateStr.split("T")[0];
-    }
-    // Otherwise, try to parse and format locally
-    const date = new Date(dateStr);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
-
-  const getTodayLocal = (): string => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const day = String(now.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
 
   useEffect(() => {
     if (isOpen) {
@@ -82,7 +57,7 @@ export function SaleModal({
           paymentNote: sale.paymentNote || "",
           bankAccountId: sale.bankAccountId || "",
           hasElectronicInvoice: sale.hasElectronicInvoice || false,
-          date: sale.date ? parseLocalDate(sale.date) : getTodayLocal(),
+          date: sale.date ? parseDateToInput(sale.date) : getTodayLocal(),
         });
         if (sale.patient) {
           setSelectedPatientId(sale.patient.id);
@@ -313,7 +288,7 @@ export function SaleModal({
                 <option value="">Sin cita asociada</option>
                 {availableAppointments.map((apt) => (
                   <option key={apt.id} value={apt.id}>
-                    {format(new Date(apt.date), "d MMM yyyy", { locale: es })} - {apt.startTime.substring(0, 5)}
+                    {format(parseLocalDate(apt.date), "d MMM yyyy", { locale: es })} - {parseTimeToDisplay(apt.startTime)}
                   </option>
                 ))}
               </select>

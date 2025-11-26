@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { formatCOP } from "@/lib/utils";
+import { parseDateToInput, getTodayLocal } from "@/lib/dates";
 import type { Expense, ExpenseFormData, Provider } from "@/types/expenses";
 import { EXPENSE_CATEGORIES } from "@/types/expenses";
 
@@ -24,7 +25,7 @@ export function ExpenseModal({
     description: "",
     amount: 0,
     category: "",
-    date: new Date().toISOString().split("T")[0],
+    date: getTodayLocal(),
     providerId: "",
   });
 
@@ -39,7 +40,7 @@ export function ExpenseModal({
           description: expense.description,
           amount: Number(expense.amount),
           category: expense.category || "",
-          date: expense.date ? new Date(expense.date).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+          date: expense.date ? parseDateToInput(expense.date) : getTodayLocal(),
           providerId: expense.provider?.id || "",
         });
       } else {
@@ -47,7 +48,7 @@ export function ExpenseModal({
           description: "",
           amount: 0,
           category: "",
-          date: new Date().toISOString().split("T")[0],
+          date: getTodayLocal(),
           providerId: "",
         });
       }

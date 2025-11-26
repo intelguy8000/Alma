@@ -5,6 +5,7 @@ import { X, Calendar, DollarSign, Phone, Mail, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { formatCOP } from "@/lib/utils";
+import { parseLocalDate, parseTimeToDisplay } from "@/lib/dates";
 
 interface Sale {
   id: string;
@@ -204,13 +205,13 @@ export function PatientHistoryDrawer({
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="font-medium">
-                              {format(new Date(apt.date), "d 'de' MMMM, yyyy", {
+                              {format(parseLocalDate(apt.date), "d 'de' MMMM, yyyy", {
                                 locale: es,
                               })}
                             </p>
                             <p className="text-sm text-muted-foreground">
-                              {format(new Date(`2000-01-01T${apt.startTime}`), "HH:mm")} -{" "}
-                              {format(new Date(`2000-01-01T${apt.endTime}`), "HH:mm")}
+                              {parseTimeToDisplay(apt.startTime)} -{" "}
+                              {parseTimeToDisplay(apt.endTime)}
                             </p>
                           </div>
                           <span

@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Pencil, Trash2, MoreHorizontal } from "lucide-react";
 import { formatCOP } from "@/lib/utils";
+import { parseLocalDate } from "@/lib/dates";
 import type { Expense } from "@/types/expenses";
 import { categoryLabels } from "@/types/expenses";
 
@@ -137,7 +138,7 @@ export function ExpensesTable({
                   className="border-b border-[#CCE3DE] last:border-0 hover:bg-[#CCE3DE]/20"
                 >
                   <td className="px-4 py-3 text-sm text-[#3D5A4C]">
-                    {format(new Date(expense.date), "d MMM yyyy", { locale: es })}
+                    {format(parseLocalDate(expense.date), "d MMM yyyy", { locale: es })}
                   </td>
                   <td className="px-4 py-3">
                     <p className="text-sm font-medium text-[#2D3D35]">
