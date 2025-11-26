@@ -287,7 +287,7 @@ export function CalendarView() {
     <>
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 calendar-container">
         {isLoading ? (
-          <div className="h-[calc(100vh-160px)] flex items-center justify-center">
+          <div className="h-[calc(100vh-140px)] flex items-center justify-center">
             <div className="text-gray-500">Cargando citas...</div>
           </div>
         ) : (
@@ -320,11 +320,12 @@ export function CalendarView() {
             select={handleDateSelect}
             eventClick={handleEventClick}
             eventDrop={handleEventDrop}
-            height="calc(100vh - 160px)"
+            height="calc(100vh - 140px)"
             nowIndicator={true}
             eventDisplay="block"
             expandRows={true}
             stickyHeaderDates={true}
+            stickyFooterScrollbar={true}
             eventTimeFormat={{
               hour: "2-digit",
               minute: "2-digit",
