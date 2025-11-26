@@ -9,6 +9,7 @@ import {
   UserX,
   UserCheck,
   MoreHorizontal,
+  AlertTriangle,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { formatCOP } from "@/lib/utils";
@@ -27,8 +28,14 @@ interface Patient {
   totalSpent: number;
 }
 
+interface DuplicateInfo {
+  id: string;
+  duplicateOf: string;
+}
+
 interface PatientsTableProps {
   patients: Patient[];
+  duplicates?: DuplicateInfo[];
   onViewHistory: (patientId: string) => void;
   onEdit: (patient: Patient) => void;
   onToggleActive: (patientId: string, isActive: boolean) => void;
@@ -137,11 +144,14 @@ function ActionMenu({
 
 export function PatientsTable({
   patients,
+  duplicates = [],
   onViewHistory,
   onEdit,
   onToggleActive,
   isLoading,
 }: PatientsTableProps) {
+  // Create a map for quick duplicate lookup
+  const duplicateMap = new Map(duplicates.map(d => [d.id, d.duplicateOf]));
   if (isLoading) {
     return (
       <div className="bg-card rounded-lg border overflow-hidden">
@@ -182,15 +192,42 @@ export function PatientsTable({
             </tr>
           </thead>
           <tbody>
-            {patients.map((patient) => (
-              <tr key={patient.id} className="border-b last:border-0 hover:bg-muted/30">
+            {patients.map((patient) => {
+              const duplicateOf = duplicateMap.get(patient.id);
+              const isDuplicate = !!duplicateOf;
+
+              return (
+              <tr
+                key={patient.id}
+                className={`border-b last:border-0 ${
+                  isDuplicate
+                    ? "bg-red-50 hover:bg-red-100 border-l-4 border-l-red-400"
+                    : "hover:bg-muted/30"
+                }`}
+              >
                 <td className="px-4 py-3">
-                  <span className="font-mono text-sm text-primary">
-                    {patient.patientCode}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {isDuplicate && (
+                      <span title={`Duplicado de: ${duplicateOf}`}>
+                        <AlertTriangle className="h-4 w-4 text-red-500" />
+                      </span>
+                    )}
+                    <span className={`font-mono text-sm ${isDuplicate ? "text-red-600" : "text-primary"}`}>
+                      {patient.patientCode}
+                    </span>
+                  </div>
                 </td>
                 <td className="px-4 py-3">
-                  <span className="font-medium">{patient.fullName}</span>
+                  <div className="flex flex-col">
+                    <span className={`font-medium ${isDuplicate ? "text-red-700" : ""}`}>
+                      {patient.fullName}
+                    </span>
+                    {isDuplicate && (
+                      <span className="text-xs text-red-500">
+                        Duplicado de: {duplicateOf}
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className="px-4 py-3 text-sm text-muted-foreground">
                   {patient.phone || "-"}
@@ -238,7 +275,8 @@ export function PatientsTable({
                   </div>
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>

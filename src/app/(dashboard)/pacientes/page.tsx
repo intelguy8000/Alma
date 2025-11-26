@@ -21,8 +21,14 @@ interface Patient {
   totalSpent: number;
 }
 
+interface DuplicateInfo {
+  id: string;
+  duplicateOf: string;
+}
+
 export default function PacientesPage() {
   const [patients, setPatients] = useState<Patient[]>([]);
+  const [duplicates, setDuplicates] = useState<DuplicateInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
@@ -42,10 +48,19 @@ export default function PacientesPage() {
       if (searchQuery) params.set("search", searchQuery);
       if (statusFilter !== "all") params.set("status", statusFilter);
 
-      const response = await fetch(`/api/patients?${params.toString()}`);
-      if (response.ok) {
-        const data = await response.json();
+      const [patientsRes, duplicatesRes] = await Promise.all([
+        fetch(`/api/patients?${params.toString()}`),
+        fetch("/api/patients/duplicates"),
+      ]);
+
+      if (patientsRes.ok) {
+        const data = await patientsRes.json();
         setPatients(data);
+      }
+
+      if (duplicatesRes.ok) {
+        const dupData = await duplicatesRes.json();
+        setDuplicates(dupData);
       }
     } catch (error) {
       console.error("Error fetching patients:", error);
@@ -208,6 +223,7 @@ export default function PacientesPage() {
       {/* Table */}
       <PatientsTable
         patients={patients}
+        duplicates={duplicates}
         onViewHistory={handleViewHistory}
         onEdit={handleEditPatient}
         onToggleActive={handleToggleActive}

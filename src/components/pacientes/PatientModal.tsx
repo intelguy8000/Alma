@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { X, AlertTriangle } from "lucide-react";
 
 interface Patient {
   id?: string;
@@ -35,6 +35,12 @@ export function PatientModal({
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [duplicateWarning, setDuplicateWarning] = useState<{
+    message: string;
+    patientName: string;
+    patientCode: string;
+  } | null>(null);
+  const [isCheckingDuplicate, setIsCheckingDuplicate] = useState(false);
 
   useEffect(() => {
     if (patient) {
@@ -57,7 +63,53 @@ export function PatientModal({
       });
     }
     setError("");
+    setDuplicateWarning(null);
   }, [patient, isOpen]);
+
+  // Check for duplicate phone/whatsapp
+  const checkDuplicate = useCallback(async (phone: string, whatsapp: string) => {
+    const normalizedPhone = phone?.replace(/\D/g, "") || "";
+    const normalizedWhatsapp = whatsapp?.replace(/\D/g, "") || "";
+
+    if (!normalizedPhone && !normalizedWhatsapp) {
+      setDuplicateWarning(null);
+      return;
+    }
+
+    setIsCheckingDuplicate(true);
+    try {
+      // We'll check by trying to create/update - the API will return the duplicate info
+      const searchNumber = normalizedPhone || normalizedWhatsapp;
+      const response = await fetch(`/api/patients?search=${searchNumber}`);
+      if (response.ok) {
+        const patients = await response.json();
+        // Find a patient with matching phone/whatsapp that isn't the current one
+        const duplicate = patients.find((p: Patient & { id: string }) => {
+          if (patient?.id && p.id === patient.id) return false;
+          const pPhone = p.phone?.replace(/\D/g, "") || "";
+          const pWhatsapp = p.whatsapp?.replace(/\D/g, "") || "";
+          return (
+            (normalizedPhone && (pPhone === normalizedPhone || pWhatsapp === normalizedPhone)) ||
+            (normalizedWhatsapp && (pPhone === normalizedWhatsapp || pWhatsapp === normalizedWhatsapp))
+          );
+        });
+
+        if (duplicate) {
+          setDuplicateWarning({
+            message: "Ya existe un paciente con este número",
+            patientName: duplicate.fullName,
+            patientCode: duplicate.patientCode,
+          });
+        } else {
+          setDuplicateWarning(null);
+        }
+      }
+    } catch (err) {
+      console.error("Error checking duplicate:", err);
+    } finally {
+      setIsCheckingDuplicate(false);
+    }
+  }, [patient?.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,7 +197,10 @@ export function PatientModal({
               onChange={(e) =>
                 setFormData({ ...formData, phone: e.target.value })
               }
-              className="w-full px-3 py-2 border border-input rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+              onBlur={() => checkDuplicate(formData.phone || "", formData.whatsapp || "")}
+              className={`w-full px-3 py-2 border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring ${
+                duplicateWarning ? "border-red-400" : "border-input"
+              }`}
               placeholder="+57 300 123 4567"
             />
           </div>
@@ -158,10 +213,25 @@ export function PatientModal({
               onChange={(e) =>
                 setFormData({ ...formData, whatsapp: e.target.value })
               }
-              className="w-full px-3 py-2 border border-input rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+              onBlur={() => checkDuplicate(formData.phone || "", formData.whatsapp || "")}
+              className={`w-full px-3 py-2 border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring ${
+                duplicateWarning ? "border-red-400" : "border-input"
+              }`}
               placeholder="+57 300 123 4567"
             />
           </div>
+
+          {duplicateWarning && (
+            <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-md">
+              <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-red-700">{duplicateWarning.message}</p>
+                <p className="text-red-600">
+                  Paciente: {duplicateWarning.patientName} ({duplicateWarning.patientCode})
+                </p>
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium mb-1">Email</label>
@@ -199,10 +269,10 @@ export function PatientModal({
             </button>
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || isCheckingDuplicate || !!duplicateWarning}
               className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
-              {isLoading ? "Guardando..." : patient ? "Guardar" : "Crear"}
+              {isLoading ? "Guardando..." : isCheckingDuplicate ? "Verificando..." : patient ? "Guardar" : "Crear"}
             </button>
           </div>
         </form>

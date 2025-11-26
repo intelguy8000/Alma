@@ -103,6 +103,46 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check for duplicate phone/whatsapp
+    const normalizedPhone = phone?.replace(/\D/g, "") || "";
+    const normalizedWhatsapp = whatsapp?.replace(/\D/g, "") || "";
+
+    if (normalizedPhone || normalizedWhatsapp) {
+      const duplicateConditions = [];
+
+      if (normalizedPhone) {
+        duplicateConditions.push({ phone: { contains: normalizedPhone } });
+        duplicateConditions.push({ whatsapp: { contains: normalizedPhone } });
+      }
+
+      if (normalizedWhatsapp && normalizedWhatsapp !== normalizedPhone) {
+        duplicateConditions.push({ phone: { contains: normalizedWhatsapp } });
+        duplicateConditions.push({ whatsapp: { contains: normalizedWhatsapp } });
+      }
+
+      const existingPatient = await prisma.patient.findFirst({
+        where: {
+          organizationId: session.user.organizationId,
+          isActive: true,
+          OR: duplicateConditions,
+        },
+      });
+
+      if (existingPatient) {
+        return NextResponse.json(
+          {
+            error: `Ya existe un paciente con este número: ${existingPatient.fullName} (${existingPatient.patientCode})`,
+            duplicatePatient: {
+              id: existingPatient.id,
+              fullName: existingPatient.fullName,
+              patientCode: existingPatient.patientCode,
+            }
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     // Generate patient code
     const lastPatient = await prisma.patient.findFirst({
       where: { organizationId: session.user.organizationId },
