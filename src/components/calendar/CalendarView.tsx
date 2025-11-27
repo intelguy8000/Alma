@@ -333,18 +333,16 @@ export function CalendarView() {
     }
   };
 
-  // Add tooltip on event mount
+  // Add custom tooltip on event mount
   const handleEventDidMount = (arg: EventMountArg) => {
     const props = arg.event.extendedProps;
     const patientName = formatName(props.patientName as string);
     const timeRange = `${props.startTimeStr} - ${props.endTimeStr}`;
     const typeLabel = typeLabels[props.type as keyof typeof typeLabels] || props.type;
 
-    // Create tooltip text
-    const tooltipText = `${patientName}\n${timeRange}\n${typeLabel}`;
-
-    // Set title attribute for native tooltip
-    arg.el.setAttribute("title", tooltipText);
+    // Set data attributes for CSS tooltip
+    arg.el.setAttribute("data-tooltip", `${patientName}\n${timeRange}\n${typeLabel}`);
+    arg.el.classList.add("calendar-event-tooltip");
   };
 
   return (

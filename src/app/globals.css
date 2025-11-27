@@ -238,6 +238,56 @@
   background: rgba(107, 144, 128, 0.2);
 }
 
+/* Custom tooltip for calendar events */
+.calendar-event-tooltip {
+  position: relative;
+}
+
+.calendar-event-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #1f2937;
+  color: #ffffff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: pre-line;
+  line-height: 1.4;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+  min-width: 140px;
+  text-align: center;
+}
+
+.calendar-event-tooltip::before {
+  content: "";
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #1f2937;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+  pointer-events: none;
+}
+
+.calendar-event-tooltip:hover::after,
+.calendar-event-tooltip:hover::before {
+  opacity: 1;
+  visibility: visible;
+}
+
 /* Hide the time in events - time is visible in left grid */
 .fc .fc-event-time {
   display: none !important;
