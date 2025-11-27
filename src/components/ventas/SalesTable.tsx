@@ -145,8 +145,6 @@ export function SalesTable({
               <th className="text-right text-sm font-medium text-[#3D5A4C]">Monto</th>
               <th className="text-left text-sm font-medium text-[#3D5A4C]">Método</th>
               <th className="text-center text-sm font-medium text-[#3D5A4C]">Factura E.</th>
-              <th className="text-left text-sm font-medium text-[#3D5A4C]">Cuenta</th>
-              <th className="text-left text-sm font-medium text-[#3D5A4C]">Registrado por</th>
               <th className="text-center text-sm font-medium text-[#3D5A4C]">Acciones</th>
             </tr>
           </thead>
@@ -209,14 +207,6 @@ export function SalesTable({
                         <FileX className="h-5 w-5 text-[#9CA3AF] mx-auto" />
                       )}
                     </button>
-                  </td>
-                  <td className="text-sm text-[#5C7A6B]">
-                    {sale.bankAccount ? sale.bankAccount.alias : "-"}
-                  </td>
-                  <td className="text-sm text-[#5C7A6B]">
-                    <span className="cell-truncate-sm block" title={sale.createdBy.fullName}>
-                      {sale.createdBy.fullName}
-                    </span>
                   </td>
                   <td>
                     <div className="flex justify-center">
