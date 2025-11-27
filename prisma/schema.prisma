@@ -37,6 +37,7 @@ model Organization {
   chatMessages       ChatMessage[]
   tabataKnowledge    TabataKnowledge[]
   tabataFeedback     TabataFeedback[]
+  auditLogs          AuditLog[]
 
   @@index([slug])
 }
@@ -70,6 +71,13 @@ model User {
   inventoryMovements InventoryMovement[] @relation("MovementCreatedBy")
   chatMessages       ChatMessage[]
   tabataFeedback     TabataFeedback[]
+  // Soft delete relations
+  patientsDeleted     Patient[]     @relation("PatientDeletedBy")
+  appointmentsDeleted Appointment[] @relation("AppointmentDeletedBy")
+  salesDeleted        Sale[]        @relation("SaleDeletedBy")
+  expensesDeleted     Expense[]     @relation("ExpenseDeletedBy")
+  // Audit relations
+  auditLogs          AuditLog[]
 
   @@index([organizationId])
   @@index([email])
@@ -92,16 +100,21 @@ model Patient {
   isActive             Boolean   @default(true)
   firstAppointmentDate DateTime?
   createdAt            DateTime  @default(now())
+  // Soft delete
+  deletedAt            DateTime?
+  deletedById          String?
 
   // Relations
   organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   appointments Appointment[]
   sales        Sale[]
+  deletedBy    User?         @relation("PatientDeletedBy", fields: [deletedById], references: [id])
 
   @@index([organizationId])
   @@index([patientCode])
   @@index([organizationId, isActive])
   @@index([organizationId, fullName])
+  @@index([organizationId, deletedAt])
 }
 
 // ===========================================
@@ -136,19 +149,24 @@ model Appointment {
   notes           String?
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
+  // Soft delete
+  deletedAt       DateTime?
+  deletedById     String?
 
   // Relations
-  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  patient       Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  rescheduledTo Appointment? @relation("RescheduledAppointment", fields: [rescheduledToId], references: [id])
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  patient         Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  rescheduledTo   Appointment? @relation("RescheduledAppointment", fields: [rescheduledToId], references: [id])
   rescheduledFrom Appointment? @relation("RescheduledAppointment")
-  sales         Sale[]
+  sales           Sale[]
+  deletedBy       User?        @relation("AppointmentDeletedBy", fields: [deletedById], references: [id])
 
   @@index([organizationId])
   @@index([patientId])
   @@index([organizationId, date])
   @@index([organizationId, status])
   @@index([date, startTime])
+  @@index([organizationId, deletedAt])
 }
 
 // ===========================================
@@ -174,6 +192,9 @@ model Sale {
   date                 DateTime      @db.Date
   createdById          String
   createdAt            DateTime      @default(now())
+  // Soft delete
+  deletedAt            DateTime?
+  deletedById          String?
 
   // Relations
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -181,12 +202,14 @@ model Sale {
   appointment  Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
   bankAccount  BankAccount? @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
   createdBy    User         @relation("SaleCreatedBy", fields: [createdById], references: [id])
+  deletedBy    User?        @relation("SaleDeletedBy", fields: [deletedById], references: [id])
 
   @@index([organizationId])
   @@index([organizationId, date])
   @@index([patientId])
   @@index([appointmentId])
   @@index([createdById])
+  @@index([organizationId, deletedAt])
 }
 
 model BankAccount {
@@ -215,15 +238,20 @@ model Expense {
   date           DateTime @db.Date
   providerId     String?
   createdAt      DateTime @default(now())
+  // Soft delete
+  deletedAt      DateTime?
+  deletedById    String?
 
   // Relations
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   provider     Provider?    @relation(fields: [providerId], references: [id], onDelete: SetNull)
+  deletedBy    User?        @relation("ExpenseDeletedBy", fields: [deletedById], references: [id])
 
   @@index([organizationId])
   @@index([organizationId, date])
   @@index([organizationId, category])
   @@index([providerId])
+  @@index([organizationId, deletedAt])
 }
 
 model Provider {
@@ -375,5 +403,29 @@ model TabataFeedback {
 
   @@index([organizationId, status])
   @@index([organizationId, type])
+  @@index([userId])
+}
+
+// ===========================================
+// AUDIT LOG
+// ===========================================
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  action         String   // CREATE, UPDATE, DELETE, RESTORE
+  entity         String   // Patient, Sale, Appointment, Expense
+  entityId       String
+  oldData        Json?    // datos antes del cambio
+  newData        Json?    // datos después del cambio
+  createdAt      DateTime @default(now())
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([entity, entityId])
   @@index([userId])
 }

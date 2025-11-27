@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
 
     const where = {
       organizationId: session.user.organizationId,
+      deletedAt: null, // Exclude soft deleted
       ...(realModeActive && allowedPatientIds && { id: { in: allowedPatientIds } }),
       ...(search && {
         OR: [

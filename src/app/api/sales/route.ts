@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
 
     const where: Record<string, unknown> = {
       organizationId: session.user.organizationId,
+      deletedAt: null, // Exclude soft deleted
     };
 
     // If real mode is active, only show sales with electronic invoice

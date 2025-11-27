@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
     // Build where clause
     const where: Record<string, unknown> = {
       organizationId: session.user.organizationId,
+      deletedAt: null, // Exclude soft deleted
       ...(realModeActive && allowedPatientIds && { patientId: { in: allowedPatientIds } }),
     };
 

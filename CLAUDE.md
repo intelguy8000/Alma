@@ -542,4 +542,97 @@ const SETTINGS_KEYS = {
 
 ---
 
+## Protección de Datos
+
+### Soft Delete
+
+Los modelos críticos utilizan "soft delete" en lugar de eliminación permanente. Esto permite recuperar datos eliminados accidentalmente.
+
+**Modelos con soft delete:**
+- `Patient` - Pacientes
+- `Appointment` - Citas
+- `Sale` - Ventas
+- `Expense` - Gastos
+
+**Campos de soft delete:**
+```prisma
+deletedAt     DateTime?   // Fecha de eliminación (null = no eliminado)
+deletedById   String?     // Usuario que eliminó
+deletedBy     User?       // Relación al usuario
+```
+
+**Al consultar datos, SIEMPRE filtrar soft-deleted:**
+```typescript
+// ✅ CORRECTO - Excluir eliminados
+const patients = await prisma.patient.findMany({
+  where: {
+    organizationId: session.user.organizationId,
+    deletedAt: null, // SIEMPRE incluir esto
+  },
+});
+
+// ❌ INCORRECTO - Incluiría registros eliminados
+const patients = await prisma.patient.findMany({
+  where: {
+    organizationId: session.user.organizationId,
+  },
+});
+```
+
+**Al eliminar, usar soft delete:**
+```typescript
+// ✅ CORRECTO - Soft delete
+await prisma.patient.update({
+  where: { id },
+  data: {
+    deletedAt: new Date(),
+    deletedById: session.user.id,
+  },
+});
+
+// ❌ INCORRECTO - Eliminación permanente
+await prisma.patient.delete({ where: { id } });
+```
+
+### Audit Logging
+
+Todas las operaciones críticas se registran en `AuditLog`:
+
+```typescript
+import { logAudit, serializeForAudit } from "@/lib/audit";
+
+// Registrar eliminación
+await logAudit({
+  organizationId: session.user.organizationId,
+  userId: session.user.id,
+  action: "DELETE",
+  entity: "Patient",
+  entityId: patient.id,
+  oldData: serializeForAudit(patient),
+});
+
+// Acciones disponibles: CREATE, UPDATE, DELETE, RESTORE
+// Entidades: Patient, Appointment, Sale, Expense
+```
+
+**Vista de auditoría:**
+- Solo visible para usuarios admin
+- Configuración → Auditoría
+- Filtros por acción, entidad y rango de fechas
+
+### Neon PITR (Point-in-Time Recovery)
+
+Neon PostgreSQL incluye PITR como respaldo adicional:
+
+- **Retención**: 7 días en plan Free, 30 días en Pro
+- **Granularidad**: Hasta el segundo
+- **Uso**: Panel de Neon → Branch → Restore
+
+**Proceso de restauración ante desastre:**
+1. Verificar si el dato existe en AuditLog (oldData)
+2. Si es reciente (< 30 días), usar soft delete restore
+3. Si es crítico, usar Neon PITR para restaurar la branch
+
+---
+
 *Última actualización: Noviembre 2024*

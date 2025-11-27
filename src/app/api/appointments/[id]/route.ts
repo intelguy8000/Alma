@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { logAudit, serializeForAudit } from "@/lib/audit";
 
 const updateAppointmentSchema = z.object({
   patientId: z.string().min(1).optional(),
@@ -317,28 +318,34 @@ export async function PUT(
   }
 }
 
-// DELETE /api/appointments/[id] - Delete appointment
+// DELETE /api/appointments/[id] - Soft delete appointment
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.organizationId) {
+    if (!session?.user?.organizationId || !session?.user?.id) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
     const { id } = await params;
 
-    // Get existing appointment
+    // Get existing appointment (not already deleted)
     const existing = await prisma.appointment.findFirst({
       where: {
         id,
         organizationId: session.user.organizationId,
+        deletedAt: null,
       },
       include: {
-        sales: true,
+        sales: {
+          where: { deletedAt: null },
+        },
         rescheduledFrom: true,
+        patient: {
+          select: { fullName: true },
+        },
       },
     });
 
@@ -349,7 +356,7 @@ export async function DELETE(
       );
     }
 
-    // Check if appointment has sales
+    // Check if appointment has active sales
     if (existing.sales.length > 0) {
       return NextResponse.json(
         { error: "No se puede eliminar una cita con ventas asociadas. Cancélala en su lugar." },
@@ -369,9 +376,23 @@ export async function DELETE(
       });
     }
 
-    // Delete the appointment
-    await prisma.appointment.delete({
+    // Soft delete the appointment
+    await prisma.appointment.update({
       where: { id },
+      data: {
+        deletedAt: new Date(),
+        deletedById: session.user.id,
+      },
+    });
+
+    // Log audit
+    await logAudit({
+      organizationId: session.user.organizationId,
+      userId: session.user.id,
+      action: "DELETE",
+      entity: "Appointment",
+      entityId: id,
+      oldData: serializeForAudit(existing),
     });
 
     return NextResponse.json({ success: true });

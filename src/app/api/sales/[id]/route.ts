@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { logAudit, serializeForAudit } from "@/lib/audit";
 
 export async function GET(
   request: NextRequest,
@@ -183,17 +184,21 @@ export async function DELETE(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.organizationId) {
+    if (!session?.user?.organizationId || !session?.user?.id) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
     const { id } = await params;
 
-    // Verify sale belongs to organization
+    // Verify sale belongs to organization and is not already deleted
     const existingSale = await prisma.sale.findFirst({
       where: {
         id,
         organizationId: session.user.organizationId,
+        deletedAt: null,
+      },
+      include: {
+        patient: { select: { fullName: true } },
       },
     });
 
@@ -204,8 +209,23 @@ export async function DELETE(
       );
     }
 
-    await prisma.sale.delete({
+    // Soft delete
+    await prisma.sale.update({
       where: { id },
+      data: {
+        deletedAt: new Date(),
+        deletedById: session.user.id,
+      },
+    });
+
+    // Log audit
+    await logAudit({
+      organizationId: session.user.organizationId,
+      userId: session.user.id,
+      action: "DELETE",
+      entity: "Sale",
+      entityId: id,
+      oldData: serializeForAudit(existingSale),
     });
 
     return NextResponse.json({ success: true });

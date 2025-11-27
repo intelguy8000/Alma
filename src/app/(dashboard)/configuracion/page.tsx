@@ -2,18 +2,19 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { Settings, CreditCard, MapPin, Bell, MessageSquareWarning, Lock } from "lucide-react";
+import { Settings, CreditCard, MapPin, Bell, MessageSquareWarning, Lock, History } from "lucide-react";
 import { GeneralSettings } from "@/components/configuracion/GeneralSettings";
 import { BankAccountsSettings } from "@/components/configuracion/BankAccountsSettings";
 import { LocationsSettings } from "@/components/configuracion/LocationsSettings";
 import { NotificationsSettings } from "@/components/configuracion/NotificationsSettings";
 import { FeedbackSettings } from "@/components/configuracion/FeedbackSettings";
 import { SafeBoxSettings } from "@/components/configuracion/SafeBoxSettings";
+import { AuditSettings } from "@/components/configuracion/AuditSettings";
 import type { OrganizationSettings, BankAccount, Location, GeneralSettingsFormData } from "@/types/settings";
 import { SETTINGS_KEYS } from "@/types/settings";
 import { cn } from "@/lib/utils";
 
-type TabType = "general" | "bank_accounts" | "locations" | "notifications" | "feedback" | "safebox";
+type TabType = "general" | "bank_accounts" | "locations" | "notifications" | "feedback" | "audit" | "safebox";
 
 const baseTabs = [
   { id: "general" as TabType, label: "General", icon: Settings },
@@ -26,6 +27,7 @@ const baseTabs = [
 const adminTabs = [
   ...baseTabs.slice(0, 4),
   { id: "feedback" as TabType, label: "Feedback", icon: MessageSquareWarning, adminOnly: true },
+  { id: "audit" as TabType, label: "Auditoría", icon: History, adminOnly: true },
   { id: "safebox" as TabType, label: "Caja Fuerte", icon: Lock },
 ];
 
@@ -221,6 +223,9 @@ export default function ConfiguracionPage() {
               )}
               {activeTab === "feedback" && session?.user?.role === "admin" && (
                 <FeedbackSettings />
+              )}
+              {activeTab === "audit" && session?.user?.role === "admin" && (
+                <AuditSettings />
               )}
               {activeTab === "safebox" && (
                 <SafeBoxSettings

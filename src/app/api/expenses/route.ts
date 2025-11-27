@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
 
     const where: Record<string, unknown> = {
       organizationId: session.user.organizationId,
+      deletedAt: null, // Exclude soft deleted
     };
 
     if (startDate && endDate) {
