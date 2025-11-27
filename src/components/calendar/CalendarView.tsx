@@ -5,10 +5,33 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { EventClickArg, DateSelectArg, EventDropArg } from "@fullcalendar/core";
+import { EventClickArg, DateSelectArg, EventDropArg, EventMountArg } from "@fullcalendar/core";
 import { format, addHours } from "date-fns";
 import { parseDateToInput, parseTimeToDisplay } from "@/lib/dates";
 import { AppointmentModal, AppointmentData } from "./AppointmentModal";
+
+// Type labels for tooltip
+const typeLabels = {
+  presencial: "Presencial",
+  virtual: "Virtual",
+  terapia_choque: "T. Choque",
+};
+
+// Capitalize first letter of each word, lowercase rest
+const formatName = (name: string): string => {
+  return name
+    .toLowerCase()
+    .split(" ")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
+// Truncate name if too long
+const truncateName = (name: string, maxLength: number = 20): string => {
+  const formatted = formatName(name);
+  if (formatted.length <= maxLength) return formatted;
+  return formatted.substring(0, maxLength) + "...";
+};
 
 interface CalendarEvent {
   id: string;
@@ -25,6 +48,8 @@ interface CalendarEvent {
     location: string;
     status: "confirmada" | "no_responde" | "cancelada" | "reagendada" | "completada";
     notes: string;
+    startTimeStr: string;
+    endTimeStr: string;
   };
   classNames?: string[];
 }
@@ -87,7 +112,7 @@ const appointmentToEvent = (apt: APIAppointment): CalendarEvent => {
 
   return {
     id: apt.id,
-    title: apt.patient.fullName,
+    title: truncateName(apt.patient.fullName),
     start,
     end,
     backgroundColor: colors.bg,
@@ -101,6 +126,8 @@ const appointmentToEvent = (apt: APIAppointment): CalendarEvent => {
       location: apt.location || "forum_1103",
       status: apt.status,
       notes: apt.notes || "",
+      startTimeStr,
+      endTimeStr,
     },
   };
 };
@@ -301,6 +328,20 @@ export function CalendarView() {
     }
   };
 
+  // Add tooltip on event mount
+  const handleEventDidMount = (arg: EventMountArg) => {
+    const props = arg.event.extendedProps;
+    const patientName = formatName(props.patientName as string);
+    const timeRange = `${props.startTimeStr} - ${props.endTimeStr}`;
+    const typeLabel = typeLabels[props.type as keyof typeof typeLabels] || props.type;
+
+    // Create tooltip text
+    const tooltipText = `${patientName}\n${timeRange}\n${typeLabel}`;
+
+    // Set title attribute for native tooltip
+    arg.el.setAttribute("title", tooltipText);
+  };
+
   return (
     <>
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 calendar-container">
@@ -339,17 +380,14 @@ export function CalendarView() {
             select={handleDateSelect}
             eventClick={handleEventClick}
             eventDrop={handleEventDrop}
+            eventDidMount={handleEventDidMount}
             height="calc(100vh - 140px)"
             nowIndicator={true}
             eventDisplay="block"
             expandRows={true}
             stickyHeaderDates={true}
             stickyFooterScrollbar={true}
-            eventTimeFormat={{
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            }}
+            displayEventTime={false}
             slotLabelFormat={{
               hour: "2-digit",
               minute: "2-digit",
