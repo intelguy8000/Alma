@@ -2,6 +2,7 @@
 
 import { Sidebar, SidebarProvider, MobileMenuButton, useSidebar, InactivityTimeout } from "@/components/layout";
 import TabataChat from "@/components/chat/TabataChat";
+import { ThemeColorProvider } from "@/contexts/ThemeColorContext";
 import { cn } from "@/lib/utils";
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
@@ -34,8 +35,10 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SidebarProvider>
-      <DashboardContent>{children}</DashboardContent>
-    </SidebarProvider>
+    <ThemeColorProvider>
+      <SidebarProvider>
+        <DashboardContent>{children}</DashboardContent>
+      </SidebarProvider>
+    </ThemeColorProvider>
   );
 }

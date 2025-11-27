@@ -63,6 +63,7 @@ model User {
   resetToken        String?
   resetTokenExpires DateTime?
   lastLogin         DateTime?
+  preferredColor    String?   @default("#6B9080")
   createdAt         DateTime  @default(now())
 
   // Relations

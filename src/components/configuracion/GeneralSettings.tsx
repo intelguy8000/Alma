@@ -1,21 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Save, Building2, Palette, Shield, Check } from "lucide-react";
 import type { OrganizationSettings, GeneralSettingsFormData } from "@/types/settings";
 import { SETTINGS_KEYS } from "@/types/settings";
-
-// Predefined color palette
-const colorPalette = [
-  { value: "#6B9080", name: "Verde Sage" },
-  { value: "#84A98C", name: "Verde Menta" },
-  { value: "#A7C4BC", name: "Verde Agua" },
-  { value: "#8FBCBB", name: "Turquesa" },
-  { value: "#B48EAD", name: "Lavanda" },
-  { value: "#D4A5A5", name: "Rosa Dusty" },
-  { value: "#E8C07D", name: "Durazno" },
-  { value: "#94B49F", name: "Verde Oliva" },
-];
+import { useThemeColor, colorPalette } from "@/contexts/ThemeColorContext";
 
 // Session timeout options
 const sessionTimeoutOptions = [
@@ -36,18 +25,14 @@ interface GeneralSettingsProps {
 
 export function GeneralSettings({ organization, settings, onSave }: GeneralSettingsProps) {
   const [isSaving, setIsSaving] = useState(false);
+  const { primaryColor, setPrimaryColor } = useThemeColor();
   const [formData, setFormData] = useState<GeneralSettingsFormData>({
     name: organization?.name || "",
     logoUrl: organization?.logoUrl || null,
-    primaryColor: organization?.primaryColor || "#6B9080",
+    primaryColor: primaryColor,
     defaultAppointmentValue: settings[SETTINGS_KEYS.DEFAULT_APPOINTMENT_VALUE] || "332000",
     sessionTimeout: settings[SETTINGS_KEYS.SESSION_TIMEOUT] || "60",
   });
-
-  // Apply color to CSS variable
-  useEffect(() => {
-    document.documentElement.style.setProperty("--primary-color", formData.primaryColor || "#6B9080");
-  }, [formData.primaryColor]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,6 +52,12 @@ export function GeneralSettings({ organization, settings, onSave }: GeneralSetti
   const handleCurrencyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value.replace(/\D/g, "");
     setFormData({ ...formData, defaultAppointmentValue: rawValue });
+  };
+
+  const handleColorChange = async (color: string) => {
+    setFormData({ ...formData, primaryColor: color });
+    // Apply immediately and save to user preferences
+    await setPrimaryColor(color);
   };
 
   return (
@@ -133,19 +124,19 @@ export function GeneralSettings({ organization, settings, onSave }: GeneralSetti
               <button
                 key={color.value}
                 type="button"
-                onClick={() => setFormData({ ...formData, primaryColor: color.value })}
+                onClick={() => handleColorChange(color.value)}
                 className="relative group"
                 title={color.name}
               >
                 <div
                   className={`w-12 h-12 rounded-lg border-2 transition-all ${
-                    formData.primaryColor === color.value
+                    primaryColor === color.value
                       ? "border-gray-900 ring-2 ring-offset-2 ring-gray-400"
                       : "border-transparent hover:border-gray-300"
                   }`}
                   style={{ backgroundColor: color.value }}
                 >
-                  {formData.primaryColor === color.value && (
+                  {primaryColor === color.value && (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <Check className="w-5 h-5 text-white drop-shadow-md" />
                     </div>
@@ -158,7 +149,8 @@ export function GeneralSettings({ organization, settings, onSave }: GeneralSetti
             ))}
           </div>
           <p className="text-xs text-[#5C7A6B] mt-3">
-            Color seleccionado: <span className="font-mono">{formData.primaryColor}</span>
+            Color seleccionado: <span className="font-mono">{primaryColor}</span>
+            <span className="ml-2 text-[#84A98C]">(Se guarda automáticamente por usuario)</span>
           </p>
         </div>
       </div>

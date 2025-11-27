@@ -82,7 +82,7 @@ function SidebarContent() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#6B9080] text-white">
+    <div className="flex flex-col h-full text-white" style={{ backgroundColor: "var(--sidebar)" }}>
       {/* Logo */}
       <div className="flex items-center p-4 border-b border-white/20">
         <div className="flex items-center gap-3 overflow-hidden flex-1">
@@ -223,7 +223,8 @@ function ExpandButton() {
   return (
     <button
       onClick={() => setIsExpanded(!isExpanded)}
-      className="hidden lg:flex absolute top-20 -right-3 w-6 h-6 bg-[#6B9080] border-2 border-white rounded-full items-center justify-center hover:bg-[#5a7a6d] transition-colors shadow-md z-50"
+      className="hidden lg:flex absolute top-20 -right-3 w-6 h-6 border-2 border-white rounded-full items-center justify-center transition-colors shadow-md z-50"
+      style={{ backgroundColor: "var(--sidebar)" }}
       title={isExpanded ? "Contraer menú" : "Expandir menú"}
     >
       <ChevronLeft
