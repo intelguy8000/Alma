@@ -24,7 +24,7 @@ import {
   Lock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useRealMode } from "@/hooks/useRealMode";
+import { useVistaContable } from "@/hooks/useVistaContable";
 
 interface SidebarContextType {
   isExpanded: boolean;
@@ -75,7 +75,7 @@ function SidebarContent() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const { isExpanded, setIsMobileOpen } = useSidebar();
-  const { isRealMode } = useRealMode();
+  const { isVistaContable } = useVistaContable();
 
   const handleLinkClick = () => {
     setIsMobileOpen(false);
@@ -100,22 +100,22 @@ function SidebarContent() {
         </div>
       </div>
 
-      {/* Real Mode Badge */}
-      {isRealMode && (
+      {/* Vista Contable Badge */}
+      {isVistaContable && (
         <div
           className={cn(
-            "mx-3 mt-3 flex items-center gap-2 px-3 py-2 bg-[#2E7D32]/30 rounded-lg border border-[#2E7D32]/50",
+            "mx-3 mt-3 flex items-center gap-2 px-3 py-2 bg-[#1565C0]/30 rounded-lg border border-[#1565C0]/50",
             !isExpanded && "justify-center px-2"
           )}
         >
-          <Lock className="w-4 h-4 text-[#A5D6A7] flex-shrink-0" />
+          <Lock className="w-4 h-4 text-[#90CAF9] flex-shrink-0" />
           <span
             className={cn(
-              "text-xs font-medium text-[#A5D6A7] whitespace-nowrap transition-all duration-300",
+              "text-xs font-medium text-[#90CAF9] whitespace-nowrap transition-all duration-300",
               isExpanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"
             )}
           >
-            Modo Real
+            Vista Contable
           </span>
         </div>
       )}

@@ -118,7 +118,7 @@ export default function ConfiguracionPage() {
     }
   };
 
-  const handleToggleRealMode = async (enabled: boolean): Promise<boolean> => {
+  const handleToggleVistaContable = async (enabled: boolean): Promise<boolean> => {
     try {
       const response = await fetch("/api/settings", {
         method: "PUT",
@@ -131,19 +131,19 @@ export default function ConfiguracionPage() {
       });
 
       if (response.ok) {
-        setSaveMessage(enabled ? "Modo Real activado" : "Modo Real desactivado");
+        setSaveMessage(enabled ? "Vista Contable activada" : "Vista Contable desactivada");
         setTimeout(() => setSaveMessage(null), 3000);
         fetchSettings();
         return true;
       }
       return false;
     } catch (error) {
-      console.error("Error toggling real mode:", error);
+      console.error("Error toggling vista contable:", error);
       return false;
     }
   };
 
-  const isRealModeEnabled = settings[SETTINGS_KEYS.REAL_MODE] === "true";
+  const isVistaContableEnabled = settings[SETTINGS_KEYS.REAL_MODE] === "true";
 
   return (
     <div className="p-6 space-y-6">
@@ -229,8 +229,8 @@ export default function ConfiguracionPage() {
               )}
               {activeTab === "safebox" && (
                 <SafeBoxSettings
-                  isRealModeEnabled={isRealModeEnabled}
-                  onToggleRealMode={handleToggleRealMode}
+                  isVistaContableEnabled={isVistaContableEnabled}
+                  onToggleVistaContable={handleToggleVistaContable}
                 />
               )}
             </>
