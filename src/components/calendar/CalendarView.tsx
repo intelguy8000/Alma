@@ -7,10 +7,8 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { EventClickArg, DateSelectArg, EventDropArg, EventMountArg } from "@fullcalendar/core";
 import { format, addHours } from "date-fns";
-import { Rows3, Rows4 } from "lucide-react";
 import { parseDateToInput, parseTimeToDisplay } from "@/lib/dates";
 import { AppointmentModal, AppointmentData } from "./AppointmentModal";
-import { cn } from "@/lib/utils";
 
 // Type labels for tooltip
 const typeLabels = {
@@ -18,12 +16,6 @@ const typeLabels = {
   virtual: "Virtual",
   terapia_choque: "T. Choque",
 };
-
-// View mode type
-type ViewMode = "compact" | "comfort";
-
-// LocalStorage key
-const VIEW_MODE_KEY = "calendar_view_mode";
 
 // Capitalize first letter of each word, lowercase rest
 const formatName = (name: string): string => {
@@ -163,22 +155,6 @@ export function CalendarView() {
   const [selectedEvent, setSelectedEvent] = useState<Partial<AppointmentData> | undefined>();
   const [isLoading, setIsLoading] = useState(true);
   const [hiddenDays, setHiddenDays] = useState<number[]>([0, 6]); // Hide Sun(0) and Sat(6) by default
-  const [viewMode, setViewMode] = useState<ViewMode>("comfort");
-
-  // Load view mode from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem(VIEW_MODE_KEY);
-    if (saved === "compact" || saved === "comfort") {
-      setViewMode(saved);
-    }
-  }, []);
-
-  // Toggle view mode and save to localStorage
-  const toggleViewMode = () => {
-    const newMode = viewMode === "comfort" ? "compact" : "comfort";
-    setViewMode(newMode);
-    localStorage.setItem(VIEW_MODE_KEY, newMode);
-  };
 
   // Fetch appointments from API
   const fetchAppointments = useCallback(async () => {
@@ -368,37 +344,7 @@ export function CalendarView() {
 
   return (
     <>
-      <div className={cn(
-        "bg-white rounded-xl shadow-sm border border-gray-100 p-4 calendar-container",
-        viewMode === "compact" ? "calendar-compact" : "calendar-comfort"
-      )}>
-        {/* View mode toggle */}
-        <div className="flex justify-end mb-2">
-          <button
-            onClick={toggleViewMode}
-            className={cn(
-              "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
-              "border border-[#CCE3DE] hover:bg-[#CCE3DE]/30",
-              viewMode === "compact"
-                ? "bg-[#6B9080] text-white border-[#6B9080]"
-                : "bg-white text-[#3D5A4C]"
-            )}
-            title={viewMode === "compact" ? "Cambiar a vista Comfort" : "Cambiar a vista Compacta"}
-          >
-            {viewMode === "compact" ? (
-              <>
-                <Rows3 className="w-4 h-4" />
-                <span>Compacta</span>
-              </>
-            ) : (
-              <>
-                <Rows4 className="w-4 h-4" />
-                <span>Comfort</span>
-              </>
-            )}
-          </button>
-        </div>
-
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 calendar-container">
         {isLoading ? (
           <div className="h-[calc(100vh-140px)] flex items-center justify-center">
             <div className="text-gray-500">Cargando citas...</div>
