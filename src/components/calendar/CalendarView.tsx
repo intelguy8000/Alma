@@ -26,11 +26,9 @@ const formatName = (name: string): string => {
     .join(" ");
 };
 
-// Truncate name if too long
-const truncateName = (name: string, maxLength: number = 20): string => {
-  const formatted = formatName(name);
-  if (formatted.length <= maxLength) return formatted;
-  return formatted.substring(0, maxLength) + "...";
+// Format name without truncation - CSS handles overflow
+const getDisplayName = (name: string): string => {
+  return formatName(name);
 };
 
 interface CalendarEvent {
@@ -112,7 +110,7 @@ const appointmentToEvent = (apt: APIAppointment): CalendarEvent => {
 
   return {
     id: apt.id,
-    title: truncateName(apt.patient.fullName),
+    title: getDisplayName(apt.patient.fullName),
     start,
     end,
     backgroundColor: colors.bg,
