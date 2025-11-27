@@ -132,20 +132,6 @@ const appointmentToEvent = (apt: APIAppointment): CalendarEvent => {
   };
 };
 
-// Check if any events fall on weekend days
-const hasWeekendEvents = (events: CalendarEvent[]): { hasSaturday: boolean; hasSunday: boolean } => {
-  let hasSaturday = false;
-  let hasSunday = false;
-
-  for (const event of events) {
-    const dayOfWeek = event.start.getDay();
-    if (dayOfWeek === 6) hasSaturday = true;
-    if (dayOfWeek === 0) hasSunday = true;
-    if (hasSaturday && hasSunday) break;
-  }
-
-  return { hasSaturday, hasSunday };
-};
 
 export function CalendarView() {
   const calendarRef = useRef<FullCalendar>(null);
@@ -154,7 +140,6 @@ export function CalendarView() {
   const [modalMode, setModalMode] = useState<"create" | "edit" | "view">("create");
   const [selectedEvent, setSelectedEvent] = useState<Partial<AppointmentData> | undefined>();
   const [isLoading, setIsLoading] = useState(true);
-  const [hiddenDays, setHiddenDays] = useState<number[]>([0, 6]); // Hide Sun(0) and Sat(6) by default
 
   // Fetch appointments from API
   const fetchAppointments = useCallback(async () => {
@@ -176,15 +161,6 @@ export function CalendarView() {
   useEffect(() => {
     fetchAppointments();
   }, [fetchAppointments]);
-
-  // Update hidden days based on whether there are weekend events
-  useEffect(() => {
-    const { hasSaturday, hasSunday } = hasWeekendEvents(events);
-    const newHiddenDays: number[] = [];
-    if (!hasSunday) newHiddenDays.push(0);  // Hide Sunday if no events
-    if (!hasSaturday) newHiddenDays.push(6); // Hide Saturday if no events
-    setHiddenDays(newHiddenDays);
-  }, [events]);
 
   // Handle date/time selection (create new appointment)
   const handleDateSelect = (selectInfo: DateSelectArg) => {
@@ -370,8 +346,8 @@ export function CalendarView() {
             slotMaxTime="21:00:00"
             slotDuration="01:00:00"
             allDaySlot={false}
-            weekends={true}
-            hiddenDays={hiddenDays}
+            weekends={false}
+            hiddenDays={[0, 6]}
             selectable={true}
             selectMirror={true}
             editable={true}
