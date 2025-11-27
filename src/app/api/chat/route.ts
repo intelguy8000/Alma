@@ -13,7 +13,7 @@ const openai = new OpenAI({
 const getSystemPrompt = (userName: string) => `Eres Tabata, la asistente virtual de Medicina del Alma, un consultorio de terapias bioenergéticas en Medellín, Colombia.
 
 ## Contexto Actual
-- Fecha: ${new Date().toLocaleDateString("es-CO", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+- Fecha: ${new Date().toLocaleDateString("es-CO", { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "America/Bogota" })}
 - Estás hablando con: **${userName}**
 
 ## Tu Personalidad
@@ -270,8 +270,10 @@ async function searchPatients(organizationId: string, query: string) {
 }
 
 async function getTodayAppointments(organizationId: string) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // Get today's date in Colombia timezone (UTC-5)
+  const colombiaDate = new Date().toLocaleDateString("en-CA", { timeZone: "America/Bogota" });
+  const [year, month, day] = colombiaDate.split("-").map(Number);
+  const today = new Date(year, month - 1, day);
 
   const appointments = await prisma.appointment.findMany({
     where: {
@@ -351,19 +353,22 @@ async function getInventoryStatus(organizationId: string, query?: string, lowSto
 }
 
 async function getFinancialSummary(organizationId: string, period: "today" | "week" | "month") {
-  const now = new Date();
+  // Get current date in Colombia timezone (UTC-5)
+  const colombiaDate = new Date().toLocaleDateString("en-CA", { timeZone: "America/Bogota" });
+  const [year, month, day] = colombiaDate.split("-").map(Number);
+  const now = new Date(year, month - 1, day);
   let startDate: Date;
 
   switch (period) {
     case "today":
-      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      startDate = now;
       break;
     case "week":
       startDate = new Date(now);
       startDate.setDate(now.getDate() - 7);
       break;
     case "month":
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      startDate = new Date(year, month - 1, 1);
       break;
   }
 
