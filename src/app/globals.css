@@ -240,77 +240,142 @@
   background: rgba(107, 144, 128, 0.2);
 }
 
-/* Compact slot height - see 06:00-20:00 without scrolling */
-.fc .fc-timegrid-slot {
-  height: 50px !important;
+/* Hide the time in events - time is visible in left grid */
+.fc .fc-event-time {
+  display: none !important;
 }
 
-.fc .fc-timegrid-slot-lane {
-  height: 50px !important;
-}
-
-/* Compact events - single line, no time display */
+/* Base event styles */
 .fc .fc-event {
-  font-size: 11px !important;
-  padding: 2px 4px !important;
-  line-height: 1.3;
   border-left-width: 3px !important;
+  transition: all 0.2s ease;
 }
 
 .fc .fc-event-title {
   font-weight: 500;
-  font-size: 11px;
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   text-transform: capitalize;
 }
 
-/* Hide the time in events - time is visible in left grid */
-.fc .fc-event-time {
-  display: none !important;
-}
-
-/* Better event content display */
-.fc .fc-timegrid-event .fc-event-main {
-  padding: 2px 4px;
-}
-
 .fc .fc-timegrid-event-harness {
   margin-right: 0 !important;
 }
 
-/* Responsive slot heights */
+/* ========================================
+   CALENDAR COMFORT VIEW (default)
+   ======================================== */
+.calendar-comfort .fc .fc-timegrid-slot {
+  height: 50px !important;
+  transition: height 0.2s ease;
+}
+
+.calendar-comfort .fc .fc-timegrid-slot-lane {
+  height: 50px !important;
+  transition: height 0.2s ease;
+}
+
+.calendar-comfort .fc .fc-event {
+  font-size: 11px !important;
+  padding: 2px 4px !important;
+  line-height: 1.3;
+}
+
+.calendar-comfort .fc .fc-event-title {
+  font-size: 11px;
+}
+
+.calendar-comfort .fc .fc-timegrid-event .fc-event-main {
+  padding: 2px 4px;
+}
+
+/* Comfort responsive */
 @media (max-width: 1024px) {
-  .fc .fc-timegrid-slot {
+  .calendar-comfort .fc .fc-timegrid-slot,
+  .calendar-comfort .fc .fc-timegrid-slot-lane {
     height: 45px !important;
   }
 
-  .fc .fc-timegrid-slot-lane {
-    height: 45px !important;
-  }
-
-  .fc .fc-event {
+  .calendar-comfort .fc .fc-event {
     font-size: 10px !important;
     padding: 2px 3px !important;
   }
 }
 
 @media (min-width: 1440px) {
-  .fc .fc-timegrid-slot {
+  .calendar-comfort .fc .fc-timegrid-slot,
+  .calendar-comfort .fc .fc-timegrid-slot-lane {
     height: 55px !important;
   }
 
-  .fc .fc-timegrid-slot-lane {
-    height: 55px !important;
-  }
-
-  .fc .fc-event {
+  .calendar-comfort .fc .fc-event {
     font-size: 12px !important;
   }
 
-  .fc .fc-event-title {
+  .calendar-comfort .fc .fc-event-title {
     font-size: 12px;
+  }
+}
+
+/* ========================================
+   CALENDAR COMPACT VIEW
+   ======================================== */
+.calendar-compact .fc .fc-timegrid-slot {
+  height: 30px !important;
+  transition: height 0.2s ease;
+}
+
+.calendar-compact .fc .fc-timegrid-slot-lane {
+  height: 30px !important;
+  transition: height 0.2s ease;
+}
+
+.calendar-compact .fc .fc-event {
+  font-size: 10px !important;
+  padding: 1px 2px !important;
+  line-height: 1.2;
+  border-radius: 2px;
+}
+
+.calendar-compact .fc .fc-event-title {
+  font-size: 10px;
+}
+
+.calendar-compact .fc .fc-timegrid-event .fc-event-main {
+  padding: 1px 2px;
+}
+
+/* Compact header styles */
+.calendar-compact .fc .fc-col-header-cell-cushion {
+  padding: 0.5rem 0;
+  font-size: 0.75rem;
+}
+
+.calendar-compact .fc .fc-timegrid-slot-label-cushion {
+  font-size: 0.65rem;
+}
+
+/* Compact responsive */
+@media (max-width: 1024px) {
+  .calendar-compact .fc .fc-timegrid-slot,
+  .calendar-compact .fc .fc-timegrid-slot-lane {
+    height: 28px !important;
+  }
+
+  .calendar-compact .fc .fc-event {
+    font-size: 9px !important;
+  }
+}
+
+@media (min-width: 1440px) {
+  .calendar-compact .fc .fc-timegrid-slot,
+  .calendar-compact .fc .fc-timegrid-slot-lane {
+    height: 35px !important;
+  }
+
+  .calendar-compact .fc .fc-event {
+    font-size: 11px !important;
   }
 }
 
