@@ -7,6 +7,8 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { EventClickArg, DateSelectArg, EventDropArg, EventMountArg } from "@fullcalendar/core";
 import { format, addHours } from "date-fns";
+import tippy from "tippy.js";
+import "tippy.js/dist/tippy.css";
 import { parseDateToInput, parseTimeToDisplay } from "@/lib/dates";
 import { AppointmentModal, AppointmentData } from "./AppointmentModal";
 
@@ -331,7 +333,7 @@ export function CalendarView() {
     }
   };
 
-  // Add native tooltip on event mount (CSS tooltips don't work due to overflow:hidden)
+  // Add tooltip on event mount using Tippy.js
   const handleEventDidMount = (arg: EventMountArg) => {
     const props = arg.event.extendedProps;
     const patientName = formatName(props.patientName as string);
@@ -339,8 +341,16 @@ export function CalendarView() {
     const typeLabel = typeLabels[props.type as keyof typeof typeLabels] || props.type;
     const statusLabel = props.status === "completada" ? " ✓" : props.status === "cancelada" ? " ✗" : "";
 
-    // Use native title attribute for tooltip (works with overflow:hidden)
-    arg.el.setAttribute("title", `${patientName}${statusLabel}\n${timeRange}\n${typeLabel}`);
+    // Use Tippy.js for reliable tooltips
+    tippy(arg.el, {
+      content: `<strong>${patientName}${statusLabel}</strong><br/>${timeRange}<br/>${typeLabel}`,
+      allowHTML: true,
+      placement: "top",
+      theme: "dark",
+      arrow: true,
+      delay: [200, 0],
+      appendTo: document.body,
+    });
   };
 
   return (
