@@ -331,16 +331,16 @@ export function CalendarView() {
     }
   };
 
-  // Add custom tooltip on event mount
+  // Add native tooltip on event mount (CSS tooltips don't work due to overflow:hidden)
   const handleEventDidMount = (arg: EventMountArg) => {
     const props = arg.event.extendedProps;
     const patientName = formatName(props.patientName as string);
     const timeRange = `${props.startTimeStr} - ${props.endTimeStr}`;
     const typeLabel = typeLabels[props.type as keyof typeof typeLabels] || props.type;
+    const statusLabel = props.status === "completada" ? " ✓" : props.status === "cancelada" ? " ✗" : "";
 
-    // Set data attributes for CSS tooltip
-    arg.el.setAttribute("data-tooltip", `${patientName}\n${timeRange}\n${typeLabel}`);
-    arg.el.classList.add("calendar-event-tooltip");
+    // Use native title attribute for tooltip (works with overflow:hidden)
+    arg.el.setAttribute("title", `${patientName}${statusLabel}\n${timeRange}\n${typeLabel}`);
   };
 
   return (
