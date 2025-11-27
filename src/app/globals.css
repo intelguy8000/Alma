@@ -346,12 +346,25 @@
   }
 }
 
-/* Events take full column width */
+/* Events take full column width - prevent overflow */
 .fc .fc-timegrid-event {
-  width: 100% !important;
+  width: calc(100% - 2px) !important;
   left: 0 !important;
   right: 0 !important;
-  margin: 0 !important;
+  margin: 0 1px !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+/* Ensure columns don't overflow */
+.fc .fc-timegrid-col {
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.fc .fc-timegrid-col-frame {
+  overflow: hidden !important;
 }
 
 /* Calendar fills available width */

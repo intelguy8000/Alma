@@ -135,11 +135,40 @@ const appointmentToEvent = (apt: APIAppointment): CalendarEvent => {
 
 export function CalendarView() {
   const calendarRef = useRef<FullCalendar>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit" | "view">("create");
   const [selectedEvent, setSelectedEvent] = useState<Partial<AppointmentData> | undefined>();
   const [isLoading, setIsLoading] = useState(true);
+
+  // Debounced updateSize to handle container resize
+  const updateCalendarSize = useCallback(() => {
+    if (calendarRef.current) {
+      const calendarApi = calendarRef.current.getApi();
+      calendarApi.updateSize();
+    }
+  }, []);
+
+  // ResizeObserver to detect container size changes (sidebar toggle)
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let timeoutId: NodeJS.Timeout;
+    const resizeObserver = new ResizeObserver(() => {
+      // Debounce updateSize calls
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(updateCalendarSize, 150);
+    });
+
+    resizeObserver.observe(container);
+
+    return () => {
+      clearTimeout(timeoutId);
+      resizeObserver.disconnect();
+    };
+  }, [updateCalendarSize]);
 
   // Fetch appointments from API
   const fetchAppointments = useCallback(async () => {
@@ -320,7 +349,7 @@ export function CalendarView() {
 
   return (
     <>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 calendar-container">
+      <div ref={containerRef} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 calendar-container">
         {isLoading ? (
           <div className="h-[calc(100vh-140px)] flex items-center justify-center">
             <div className="text-gray-500">Cargando citas...</div>
