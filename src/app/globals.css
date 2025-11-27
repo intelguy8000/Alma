@@ -321,16 +321,27 @@
 /* ========================================
    CALENDAR COMPACT VIEW
    ======================================== */
-.calendar-compact .fc .fc-timegrid-slot {
+/* All slot-related elements must have same height */
+.calendar-compact .fc .fc-timegrid-slot,
+.calendar-compact .fc .fc-timegrid-slot-lane,
+.calendar-compact .fc .fc-timegrid-slot-label {
   height: 30px !important;
-  transition: height 0.2s ease;
+  min-height: 30px !important;
+  max-height: 30px !important;
 }
 
-.calendar-compact .fc .fc-timegrid-slot-lane {
-  height: 30px !important;
-  transition: height 0.2s ease;
+/* Force table cells to respect height */
+.calendar-compact .fc .fc-timegrid-slots table,
+.calendar-compact .fc .fc-timegrid-slots tbody,
+.calendar-compact .fc .fc-timegrid-slots tr {
+  height: auto !important;
 }
 
+.calendar-compact .fc .fc-timegrid-slots td {
+  height: 30px !important;
+}
+
+/* Compact event styles */
 .calendar-compact .fc .fc-event {
   font-size: 10px !important;
   padding: 1px 2px !important;
@@ -352,15 +363,25 @@
   font-size: 0.75rem;
 }
 
+/* Compact time label */
 .calendar-compact .fc .fc-timegrid-slot-label-cushion {
+  font-size: 0.65rem;
+  padding: 0 4px;
+}
+
+.calendar-compact .fc .fc-timegrid-axis-cushion {
   font-size: 0.65rem;
 }
 
 /* Compact responsive */
 @media (max-width: 1024px) {
   .calendar-compact .fc .fc-timegrid-slot,
-  .calendar-compact .fc .fc-timegrid-slot-lane {
+  .calendar-compact .fc .fc-timegrid-slot-lane,
+  .calendar-compact .fc .fc-timegrid-slot-label,
+  .calendar-compact .fc .fc-timegrid-slots td {
     height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
   }
 
   .calendar-compact .fc .fc-event {
@@ -370,8 +391,12 @@
 
 @media (min-width: 1440px) {
   .calendar-compact .fc .fc-timegrid-slot,
-  .calendar-compact .fc .fc-timegrid-slot-lane {
+  .calendar-compact .fc .fc-timegrid-slot-lane,
+  .calendar-compact .fc .fc-timegrid-slot-label,
+  .calendar-compact .fc .fc-timegrid-slots td {
     height: 35px !important;
+    min-height: 35px !important;
+    max-height: 35px !important;
   }
 
   .calendar-compact .fc .fc-event {
