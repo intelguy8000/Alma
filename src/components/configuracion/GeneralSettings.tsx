@@ -105,54 +105,63 @@ export function GeneralSettings({ organization, settings, onSave }: GeneralSetti
 
       {/* Appearance */}
       <div className="bg-[#F6FFF8] rounded-lg border border-[#CCE3DE] p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-lg bg-[#6B9080] flex items-center justify-center">
+        <div className="flex items-center gap-3 mb-6">
+          <div
+            className="w-10 h-10 rounded-lg flex items-center justify-center transition-colors"
+            style={{ backgroundColor: primaryColor }}
+          >
             <Palette className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="font-semibold text-[#2D3D35]">Apariencia</h3>
-            <p className="text-sm text-[#5C7A6B]">Personaliza los colores</p>
+            <h3 className="font-semibold text-[#2D3D35]">Tu Color Favorito</h3>
+            <p className="text-sm text-[#5C7A6B]">Elige el color que más te guste</p>
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-[#3D5A4C] mb-3">
-            Color Principal
-          </label>
-          <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
-            {colorPalette.map((color) => (
+        <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
+          {colorPalette.map((color) => {
+            const isSelected = primaryColor === color.value;
+            return (
               <button
                 key={color.value}
                 type="button"
                 onClick={() => handleColorChange(color.value)}
-                className="relative group"
-                title={color.name}
+                className={`group relative flex flex-col items-center transition-all duration-200 ${
+                  isSelected ? "scale-105" : "hover:scale-105"
+                }`}
               >
+                {/* Color circle */}
                 <div
-                  className={`w-12 h-12 rounded-lg border-2 transition-all ${
-                    primaryColor === color.value
-                      ? "border-gray-900 ring-2 ring-offset-2 ring-gray-400"
-                      : "border-transparent hover:border-gray-300"
+                  className={`w-14 h-14 rounded-full shadow-md transition-all duration-200 flex items-center justify-center ${
+                    isSelected
+                      ? "ring-4 ring-offset-2 ring-offset-[#F6FFF8]"
+                      : "hover:shadow-lg"
                   }`}
-                  style={{ backgroundColor: color.value }}
+                  style={{
+                    backgroundColor: color.value,
+                    // @ts-expect-error - CSS custom property for ring color
+                    "--tw-ring-color": isSelected ? color.value : undefined
+                  }}
                 >
-                  {primaryColor === color.value && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Check className="w-5 h-5 text-white drop-shadow-md" />
-                    </div>
+                  {isSelected && (
+                    <Check className="w-6 h-6 text-white drop-shadow-lg" />
                   )}
                 </div>
-                <span className="block text-xs text-center text-[#5C7A6B] mt-1 truncate">
+                {/* Color name */}
+                <span className={`mt-2 text-xs font-medium transition-colors ${
+                  isSelected ? "text-[#2D3D35]" : "text-[#5C7A6B]"
+                }`}>
                   {color.name}
                 </span>
               </button>
-            ))}
-          </div>
-          <p className="text-xs text-[#5C7A6B] mt-3">
-            Color seleccionado: <span className="font-mono">{primaryColor}</span>
-            <span className="ml-2 text-[#84A98C]">(Se guarda automáticamente por usuario)</span>
-          </p>
+            );
+          })}
         </div>
+
+        {/* Subtle confirmation message */}
+        <p className="text-center text-xs text-[#84A98C] mt-6">
+          Los cambios se guardan automáticamente
+        </p>
       </div>
 
       {/* Default Values */}
