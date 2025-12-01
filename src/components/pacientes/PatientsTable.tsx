@@ -10,6 +10,7 @@ import {
   UserCheck,
   MoreHorizontal,
   AlertTriangle,
+  Trash2,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { formatCOP } from "@/lib/utils";
@@ -39,6 +40,7 @@ interface PatientsTableProps {
   onViewHistory: (patientId: string) => void;
   onEdit: (patient: Patient) => void;
   onToggleActive: (patientId: string, isActive: boolean) => void;
+  onDelete: (patient: Patient) => void;
   isLoading?: boolean;
 }
 
@@ -47,11 +49,13 @@ function ActionMenu({
   onViewHistory,
   onEdit,
   onToggleActive,
+  onDelete,
 }: {
   patient: Patient;
   onViewHistory: (patientId: string) => void;
   onEdit: (patient: Patient) => void;
   onToggleActive: (patientId: string, isActive: boolean) => void;
+  onDelete: (patient: Patient) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -136,6 +140,16 @@ function ActionMenu({
               </>
             )}
           </button>
+          <button
+            onClick={() => {
+              onDelete(patient);
+              setIsOpen(false);
+            }}
+            className="w-full px-3 py-2 text-left text-sm hover:bg-red-50 flex items-center gap-2 text-red-600"
+          >
+            <Trash2 className="h-4 w-4" />
+            Eliminar
+          </button>
         </div>
       )}
     </div>
@@ -148,6 +162,7 @@ export function PatientsTable({
   onViewHistory,
   onEdit,
   onToggleActive,
+  onDelete,
   isLoading,
 }: PatientsTableProps) {
   // Create a map for quick duplicate lookup
@@ -273,6 +288,7 @@ export function PatientsTable({
                       onViewHistory={onViewHistory}
                       onEdit={onEdit}
                       onToggleActive={onToggleActive}
+                      onDelete={onDelete}
                     />
                   </div>
                 </td>

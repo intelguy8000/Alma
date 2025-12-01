@@ -41,6 +41,11 @@ export default function PacientesPage() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [historyPatientId, setHistoryPatientId] = useState<string | null>(null);
 
+  // Delete confirmation states
+  const [deletePatient, setDeletePatient] = useState<Patient | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const fetchPatients = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -130,6 +135,43 @@ export default function PacientesPage() {
     }
 
     fetchPatients();
+  };
+
+  const handleDeleteClick = (patient: Patient) => {
+    setDeletePatient(patient);
+    setDeleteError(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletePatient) return;
+
+    setIsDeleting(true);
+    setDeleteError(null);
+
+    try {
+      const response = await fetch(`/api/patients/${deletePatient.id}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (data.canDelete === false) {
+          setDeleteError(data.error + " Puedes desactivarlo en su lugar.");
+        } else {
+          setDeleteError(data.error || "Error al eliminar");
+        }
+        return;
+      }
+
+      setDeletePatient(null);
+      fetchPatients();
+    } catch (error) {
+      console.error("Error deleting patient:", error);
+      setDeleteError("Error al eliminar paciente");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   // Stats
@@ -227,6 +269,7 @@ export default function PacientesPage() {
         onViewHistory={handleViewHistory}
         onEdit={handleEditPatient}
         onToggleActive={handleToggleActive}
+        onDelete={handleDeleteClick}
         isLoading={isLoading}
       />
 
@@ -244,6 +287,52 @@ export default function PacientesPage() {
         onClose={() => setIsDrawerOpen(false)}
         patientId={historyPatientId}
       />
+
+      {/* Delete Confirmation Modal */}
+      {deletePatient && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-card rounded-lg border shadow-lg p-6 max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-2">Eliminar Paciente</h3>
+
+            {deleteError ? (
+              <>
+                <p className="text-red-600 mb-4">{deleteError}</p>
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => setDeletePatient(null)}
+                    className="px-4 py-2 bg-muted rounded-md hover:bg-muted/80"
+                  >
+                    Cerrar
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-muted-foreground mb-4">
+                  ¿Seguro que deseas eliminar a <strong>{deletePatient.fullName}</strong>?
+                  Esta acción no se puede deshacer.
+                </p>
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => setDeletePatient(null)}
+                    disabled={isDeleting}
+                    className="px-4 py-2 bg-muted rounded-md hover:bg-muted/80 disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleConfirmDelete}
+                    disabled={isDeleting}
+                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+                  >
+                    {isDeleting ? "Eliminando..." : "Eliminar"}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -167,12 +167,51 @@ export async function DELETE(
         organizationId: session.user.organizationId,
         deletedAt: null,
       },
+      include: {
+        _count: {
+          select: {
+            appointments: true,
+          },
+        },
+      },
     });
 
     if (!existingPatient) {
       return NextResponse.json(
         { error: "Paciente no encontrado" },
         { status: 404 }
+      );
+    }
+
+    // Check for associated sales (through appointments)
+    const salesCount = await prisma.sale.count({
+      where: {
+        organizationId: session.user.organizationId,
+        patientId: id,
+        deletedAt: null,
+      },
+    });
+
+    const appointmentsCount = existingPatient._count.appointments;
+
+    // If patient has appointments or sales, prevent deletion
+    if (appointmentsCount > 0 || salesCount > 0) {
+      const parts = [];
+      if (appointmentsCount > 0) {
+        parts.push(`${appointmentsCount} cita${appointmentsCount > 1 ? "s" : ""}`);
+      }
+      if (salesCount > 0) {
+        parts.push(`${salesCount} pago${salesCount > 1 ? "s" : ""}`);
+      }
+
+      return NextResponse.json(
+        {
+          error: `No se puede eliminar. Este paciente tiene ${parts.join(" y ")} registrado${appointmentsCount + salesCount > 1 ? "s" : ""}.`,
+          canDelete: false,
+          appointmentsCount,
+          salesCount,
+        },
+        { status: 400 }
       );
     }
 
