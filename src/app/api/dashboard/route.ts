@@ -250,7 +250,10 @@ export async function GET(request: NextRequest) {
       }));
 
     // Get patients data for line chart (by day of week)
-    const today = new Date();
+    // Use Colombia timezone to ensure correct "today" calculation
+    const colombiaDateStr = new Date().toLocaleDateString("en-CA", { timeZone: "America/Bogota" });
+    const [colYear, colMonth, colDay] = colombiaDateStr.split("-").map(Number);
+    const today = new Date(colYear, colMonth - 1, colDay);
     const weekStart = startOfWeek(today, { weekStartsOn: 1 });
     const dayLabels = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
