@@ -214,13 +214,16 @@ model Sale {
 }
 
 model BankAccount {
-  id            String   @id @default(cuid())
-  organizationId String
-  alias         String
-  accountNumber String?
-  bankName      String?
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
+  id               String   @id @default(cuid())
+  organizationId   String
+  alias            String
+  accountNumber    String?
+  bankName         String?
+  accountHolder    String?  // Nombre del titular
+  accountHolderId  String?  // Cédula del titular
+  accountType      String?  // Tipo de cuenta (Ahorros, Corriente)
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
 
   // Relations
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)

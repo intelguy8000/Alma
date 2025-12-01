@@ -17,7 +17,7 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { alias, accountNumber, bankName, isActive } = body;
+    const { alias, accountNumber, bankName, accountHolder, accountHolderId, accountType, isActive } = body;
 
     // Verify bank account belongs to organization
     const existing = await prisma.bankAccount.findFirst({
@@ -40,6 +40,9 @@ export async function PUT(
         alias: alias?.trim() || existing.alias,
         accountNumber: accountNumber?.trim() || null,
         bankName: bankName?.trim() || null,
+        accountHolder: accountHolder?.trim() || null,
+        accountHolderId: accountHolderId?.trim() || null,
+        accountType: accountType?.trim() || null,
         isActive: isActive !== undefined ? isActive : existing.isActive,
       },
     });

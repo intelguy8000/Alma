@@ -13,6 +13,7 @@ import {
   MoreVertical,
   Check,
   Trash2,
+  Banknote,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +50,7 @@ interface AppointmentsTableProps {
   onReschedule: (appointment: Appointment) => void;
   onStatusChange: (id: string, status: Appointment["status"]) => void;
   onDelete: (appointment: Appointment) => void;
+  onPaymentInfo: (appointment: Appointment) => void;
 }
 
 const typeConfig = {
@@ -84,6 +86,7 @@ export function AppointmentsTable({
   onReschedule,
   onStatusChange,
   onDelete,
+  onPaymentInfo,
 }: AppointmentsTableProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -307,7 +310,7 @@ export function AppointmentsTable({
 
                   {/* WhatsApp Column */}
                   <td>
-                    <div className="flex justify-center">
+                    <div className="flex justify-center gap-1">
                       <button
                         onClick={() => handleWhatsAppCopy(appointment)}
                         className={cn(
@@ -323,6 +326,13 @@ export function AppointmentsTable({
                         ) : (
                           <WhatsAppIcon className="w-5 h-5" />
                         )}
+                      </button>
+                      <button
+                        onClick={() => onPaymentInfo(appointment)}
+                        className="p-2 rounded-lg transition-all bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                        title="Datos de pago"
+                      >
+                        <Banknote className="w-5 h-5" />
                       </button>
                     </div>
                   </td>

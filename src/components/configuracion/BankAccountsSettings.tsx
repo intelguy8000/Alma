@@ -17,6 +17,9 @@ export function BankAccountsSettings({ bankAccounts, onRefresh }: BankAccountsSe
     alias: "",
     accountNumber: "",
     bankName: "",
+    accountHolder: "",
+    accountHolderId: "",
+    accountType: "",
   });
 
   const openModal = (account?: BankAccount) => {
@@ -26,10 +29,13 @@ export function BankAccountsSettings({ bankAccounts, onRefresh }: BankAccountsSe
         alias: account.alias,
         accountNumber: account.accountNumber || "",
         bankName: account.bankName || "",
+        accountHolder: account.accountHolder || "",
+        accountHolderId: account.accountHolderId || "",
+        accountType: account.accountType || "",
       });
     } else {
       setEditingAccount(null);
-      setFormData({ alias: "", accountNumber: "", bankName: "" });
+      setFormData({ alias: "", accountNumber: "", bankName: "", accountHolder: "", accountHolderId: "", accountType: "" });
     }
     setIsModalOpen(true);
   };
@@ -37,7 +43,7 @@ export function BankAccountsSettings({ bankAccounts, onRefresh }: BankAccountsSe
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingAccount(null);
-    setFormData({ alias: "", accountNumber: "", bankName: "" });
+    setFormData({ alias: "", accountNumber: "", bankName: "", accountHolder: "", accountHolderId: "", accountType: "" });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -249,14 +255,56 @@ export function BankAccountsSettings({ bankAccounts, onRefresh }: BankAccountsSe
                   />
                 </div>
 
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[#3D5A4C] mb-1">
+                      Tipo de Cuenta
+                    </label>
+                    <select
+                      value={formData.accountType}
+                      onChange={(e) => setFormData({ ...formData, accountType: e.target.value })}
+                      className="w-full px-3 py-2 border border-[#CCE3DE] rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-[#6B9080] text-[#2D3D35]"
+                    >
+                      <option value="">Seleccionar...</option>
+                      <option value="Ahorros">Ahorros</option>
+                      <option value="Corriente">Corriente</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[#3D5A4C] mb-1">
+                      Número de Cuenta
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.accountNumber}
+                      onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
+                      className="w-full px-3 py-2 border border-[#CCE3DE] rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-[#6B9080] text-[#2D3D35]"
+                      placeholder="Ej: 1234567890"
+                    />
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-[#3D5A4C] mb-1">
-                    Número de Cuenta
+                    Titular de la Cuenta
                   </label>
                   <input
                     type="text"
-                    value={formData.accountNumber}
-                    onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
+                    value={formData.accountHolder}
+                    onChange={(e) => setFormData({ ...formData, accountHolder: e.target.value })}
+                    className="w-full px-3 py-2 border border-[#CCE3DE] rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-[#6B9080] text-[#2D3D35]"
+                    placeholder="Ej: Juan Pérez"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[#3D5A4C] mb-1">
+                    Cédula del Titular
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.accountHolderId}
+                    onChange={(e) => setFormData({ ...formData, accountHolderId: e.target.value })}
                     className="w-full px-3 py-2 border border-[#CCE3DE] rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-[#6B9080] text-[#2D3D35]"
                     placeholder="Ej: 1234567890"
                   />

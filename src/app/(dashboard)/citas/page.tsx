@@ -15,6 +15,7 @@ import {
   AppointmentsTable,
   RescheduleModal,
   CompleteAppointmentModal,
+  PaymentInfoModal,
 } from "@/components/citas";
 import type { Appointment } from "@/components/citas";
 import { AppointmentModal, AppointmentData } from "@/components/calendar";
@@ -88,6 +89,9 @@ export default function CitasPage() {
   const [completeModalOpen, setCompleteModalOpen] = useState(false);
   const [completeTarget, setCompleteTarget] = useState<Appointment | null>(null);
 
+  const [paymentInfoModalOpen, setPaymentInfoModalOpen] = useState(false);
+  const [defaultAppointmentValue, setDefaultAppointmentValue] = useState(332000);
+
   const [locationsLoaded, setLocationsLoaded] = useState(false);
 
   // Fetch locations
@@ -102,6 +106,21 @@ export default function CitasPage() {
       console.error("Error fetching locations:", error);
     } finally {
       setLocationsLoaded(true);
+    }
+  }, []);
+
+  // Fetch default appointment value
+  const fetchDefaultValue = useCallback(async () => {
+    try {
+      const response = await fetch("/api/settings");
+      if (response.ok) {
+        const data = await response.json();
+        if (data.settings?.default_appointment_value) {
+          setDefaultAppointmentValue(parseInt(data.settings.default_appointment_value, 10));
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching settings:", error);
     }
   }, []);
 
@@ -128,10 +147,11 @@ export default function CitasPage() {
     }
   }, [filters]);
 
-  // Initial load: fetch locations once
+  // Initial load: fetch locations and settings
   useEffect(() => {
     fetchLocations();
-  }, [fetchLocations]);
+    fetchDefaultValue();
+  }, [fetchLocations, fetchDefaultValue]);
 
   // Fetch appointments when locations are loaded or filters change
   useEffect(() => {
@@ -187,6 +207,10 @@ export default function CitasPage() {
   const handleReschedule = (appointment: Appointment) => {
     setRescheduleTarget(appointment);
     setRescheduleModalOpen(true);
+  };
+
+  const handlePaymentInfo = () => {
+    setPaymentInfoModalOpen(true);
   };
 
   const handleStatusChange = async (id: string, newStatus: Appointment["status"]) => {
@@ -434,6 +458,7 @@ export default function CitasPage() {
           onReschedule={handleReschedule}
           onStatusChange={handleStatusChange}
           onDelete={handleDelete}
+          onPaymentInfo={handlePaymentInfo}
         />
       )}
 
@@ -470,6 +495,12 @@ export default function CitasPage() {
         }}
         onConfirm={handleConfirmComplete}
         patientName={completeTarget?.patientName || ""}
+      />
+
+      <PaymentInfoModal
+        isOpen={paymentInfoModalOpen}
+        onClose={() => setPaymentInfoModalOpen(false)}
+        defaultAmount={defaultAppointmentValue}
       />
     </div>
   );

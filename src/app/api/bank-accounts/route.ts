@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { alias, accountNumber, bankName } = body;
+    const { alias, accountNumber, bankName, accountHolder, accountHolderId, accountType } = body;
 
     if (!alias?.trim()) {
       return NextResponse.json(
@@ -63,6 +63,9 @@ export async function POST(request: Request) {
         alias: alias.trim(),
         accountNumber: accountNumber?.trim() || null,
         bankName: bankName?.trim() || null,
+        accountHolder: accountHolder?.trim() || null,
+        accountHolderId: accountHolderId?.trim() || null,
+        accountType: accountType?.trim() || null,
       },
     });
 

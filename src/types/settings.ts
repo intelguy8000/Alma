@@ -22,6 +22,9 @@ export interface BankAccount {
   alias: string;
   accountNumber: string | null;
   bankName: string | null;
+  accountHolder: string | null;
+  accountHolderId: string | null;
+  accountType: string | null;
   isActive: boolean;
   createdAt: Date;
   _count?: {
@@ -33,6 +36,9 @@ export interface BankAccountFormData {
   alias: string;
   accountNumber: string;
   bankName: string;
+  accountHolder: string;
+  accountHolderId: string;
+  accountType: string;
 }
 
 // Locations
