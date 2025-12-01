@@ -253,7 +253,7 @@ const tools: ChatCompletionTool[] = [
     type: "function",
     function: {
       name: "get_payments_detail",
-      description: "Obtener detalle de pagos/ventas por método de pago y fecha. Usar para preguntas como: cuántos pagaron en efectivo, cuántos en transferencia, desglose de pagos del día.",
+      description: "Obtener detalle de pagos/ventas por método de pago, fecha y facturación electrónica. Usar para: cuántos pagaron en efectivo, cuántos en transferencia, cuántos tuvieron factura electrónica.",
       parameters: {
         type: "object",
         properties: {
@@ -599,6 +599,9 @@ async function getPaymentsDetail(
     }
   });
 
+  // Contar facturas electrónicas
+  const conFactura = sales.filter((s) => s.hasElectronicInvoice === true);
+
   return {
     fecha: targetDate.toLocaleDateString("es-CO"),
     totalVentas: sales.length,
@@ -607,6 +610,10 @@ async function getPaymentsDetail(
       efectivo: { cantidad: byMethod.efectivo.count, total: `$${byMethod.efectivo.total.toLocaleString("es-CO")}` },
       transferencia: { cantidad: byMethod.transferencia.count, total: `$${byMethod.transferencia.total.toLocaleString("es-CO")}` },
       otro: { cantidad: byMethod.otro.count, total: `$${byMethod.otro.total.toLocaleString("es-CO")}` },
+    },
+    facturasElectronicas: {
+      cantidad: conFactura.length,
+      pacientes: conFactura.map((s) => s.patient.fullName),
     },
     detalle: paymentMethod && paymentMethod !== "todos" ? sales.map((s) => ({
       paciente: s.patient.fullName,
