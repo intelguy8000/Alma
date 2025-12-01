@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getColombiaToday, getColombiaDateTimeFormatted } from "@/lib/dates";
 import OpenAI from "openai";
 import { ChatCompletionMessageParam, ChatCompletionTool } from "openai/resources/chat/completions";
 
@@ -13,7 +14,7 @@ const openai = new OpenAI({
 const getSystemPrompt = (userName: string) => `Eres Tabata, la asistente virtual de Medicina del Alma, un consultorio de terapias bioenergéticas en Medellín, Colombia.
 
 ## Contexto Actual
-- Fecha: ${new Date().toLocaleDateString("es-CO", { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "America/Bogota" })}
+- Fecha: ${getColombiaDateTimeFormatted()}
 - Estás hablando con: **${userName}**
 
 ## Tu Personalidad
@@ -271,9 +272,7 @@ async function searchPatients(organizationId: string, query: string) {
 
 async function getTodayAppointments(organizationId: string) {
   // Get today's date in Colombia timezone (UTC-5)
-  const colombiaDate = new Date().toLocaleDateString("en-CA", { timeZone: "America/Bogota" });
-  const [year, month, day] = colombiaDate.split("-").map(Number);
-  const today = new Date(year, month - 1, day);
+  const today = getColombiaToday();
 
   const appointments = await prisma.appointment.findMany({
     where: {
@@ -354,9 +353,7 @@ async function getInventoryStatus(organizationId: string, query?: string, lowSto
 
 async function getFinancialSummary(organizationId: string, period: "today" | "week" | "month") {
   // Get current date in Colombia timezone (UTC-5)
-  const colombiaDate = new Date().toLocaleDateString("en-CA", { timeZone: "America/Bogota" });
-  const [year, month, day] = colombiaDate.split("-").map(Number);
-  const now = new Date(year, month - 1, day);
+  const now = getColombiaToday();
   let startDate: Date;
 
   switch (period) {
@@ -368,7 +365,7 @@ async function getFinancialSummary(organizationId: string, period: "today" | "we
       startDate.setDate(now.getDate() - 7);
       break;
     case "month":
-      startDate = new Date(year, month - 1, 1);
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
       break;
   }
 

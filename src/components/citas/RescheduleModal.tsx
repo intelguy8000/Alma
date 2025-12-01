@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { X, Calendar, Clock, AlertCircle } from "lucide-react";
+import { getColombiaTodayStr } from "@/lib/dates";
 
 interface RescheduleModalProps {
   isOpen: boolean;
@@ -21,7 +22,8 @@ export function RescheduleModal({
   currentDate,
   currentTime,
 }: RescheduleModalProps) {
-  const [newDate, setNewDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  // Use Colombia timezone for default date
+  const [newDate, setNewDate] = useState(getColombiaTodayStr());
   const [newTime, setNewTime] = useState("09:00");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -84,7 +86,7 @@ export function RescheduleModal({
                 type="date"
                 value={newDate}
                 onChange={(e) => setNewDate(e.target.value)}
-                min={format(new Date(), "yyyy-MM-dd")}
+                min={getColombiaTodayStr()}
                 className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 required
               />

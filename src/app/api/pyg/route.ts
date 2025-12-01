@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isRealModeEnabled } from "@/lib/realMode";
+import { getColombiaToday } from "@/lib/dates";
 import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 
 export async function GET(request: NextRequest) {
@@ -126,7 +127,8 @@ export async function GET(request: NextRequest) {
 
 async function getMonthlyData(organizationId: string, realModeActive: boolean) {
   const months = [];
-  const now = new Date();
+  // Use Colombia timezone for consistent month boundaries
+  const now = getColombiaToday();
 
   for (let i = 5; i >= 0; i--) {
     const monthDate = subMonths(now, i);

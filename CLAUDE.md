@@ -362,60 +362,97 @@ formatCOP(1660000); // "$1.660.000"
 
 ## Manejo de Fechas
 
-### IMPORTANTE: Timezone Colombia (America/Bogota, UTC-5)
+### CRÍTICO: Timezone Colombia (America/Bogota, UTC-5)
+
+Este sistema usa **timezone de Colombia** para todas las fechas. El servidor en Vercel corre en UTC, por lo que es CRÍTICO usar los helpers centralizados.
 
 **SIEMPRE usar helpers de `src/lib/dates.ts`**
 
 **NUNCA usar directamente:**
+- `new Date()` para obtener "hoy" en el servidor - Usa UTC, no Colombia
 - `new Date(dateStr).toISOString()` - Convierte a UTC, puede cambiar el día
 - `new Date().toISOString().split("T")[0]` - Mismo problema
 - `new Date(dateStr)` para fechas sin hora - Interpreta como UTC
 
-### Helpers disponibles:
+### Helpers de Parsing (datos existentes):
 
 ```typescript
 import {
-  parseLocalDate,      // String → Date local
+  parseLocalDate,      // String → Date local (para mostrar)
   parseDateToInput,    // String → "YYYY-MM-DD" para inputs
-  getTodayLocal,       // → "YYYY-MM-DD" de hoy
   formatDBDate,        // Date → "YYYY-MM-DD" para BD
   parseTimeToDisplay,  // "1970-01-01T09:00:00Z" → "09:00"
   parseDateTime        // Para timestamps con hora (createdAt, etc)
 } from "@/lib/dates";
 ```
 
-### Uso correcto:
+### Helpers de Colombia Timezone (fecha/hora actual):
 
 ```typescript
-// ❌ INCORRECTO - puede cambiar de día
-const date = new Date(sale.date).toISOString().split("T")[0];
+import {
+  getColombiaToday,           // → Date de hoy en Colombia
+  getColombiaTodayStr,        // → "YYYY-MM-DD" de hoy en Colombia
+  getColombiaTomorrow,        // → Date de mañana en Colombia
+  getColombiaHour,            // → Hora actual (0-23) en Colombia
+  getColombiaGreeting,        // → "Buenos días/tardes/noches"
+  getColombiaDateTimeFormatted // → "lunes, 26 de noviembre de 2025"
+} from "@/lib/dates";
+```
 
-// ✅ CORRECTO
-const date = parseDateToInput(sale.date);
+### Uso correcto en SERVIDOR (APIs):
 
-// ❌ INCORRECTO - puede dar día anterior
-const today = new Date().toISOString().split("T")[0];
+```typescript
+// ❌ INCORRECTO - new Date() usa UTC en servidor
+const today = new Date();
+const appointments = await prisma.appointment.findMany({
+  where: { date: today }  // Puede ser día anterior en Colombia!
+});
 
-// ✅ CORRECTO
-const today = getTodayLocal();
+// ✅ CORRECTO - usar helper de Colombia
+import { getColombiaToday } from "@/lib/dates";
+const today = getColombiaToday();
+const appointments = await prisma.appointment.findMany({
+  where: { date: today }
+});
+```
 
-// ❌ INCORRECTO - formato puede mostrar día incorrecto
-{format(new Date(expense.date), "d MMM yyyy", { locale: es })}
+### Uso correcto en CLIENTE (componentes):
 
-// ✅ CORRECTO
-{format(parseLocalDate(expense.date), "d MMM yyyy", { locale: es })}
+```typescript
+// ❌ INCORRECTO - format con new Date() puede dar día anterior
+const dateStr = format(new Date(), "yyyy-MM-dd");
+
+// ✅ CORRECTO - usar helper
+import { getColombiaTodayStr } from "@/lib/dates";
+const dateStr = getColombiaTodayStr();
+
+// Para saludos basados en hora:
+import { getColombiaGreeting } from "@/lib/dates";
+const greeting = getColombiaGreeting(); // "Buenos días", etc.
 ```
 
 ### Cuándo usar cada helper:
 
 | Caso de uso | Helper |
 |-------------|--------|
-| Mostrar fecha en tabla/modal | `parseLocalDate()` + `format()` |
+| Fecha de hoy (Date) en API | `getColombiaToday()` |
+| Fecha de hoy (string) para form | `getColombiaTodayStr()` |
+| Fecha de mañana para queries | `getColombiaTomorrow()` |
+| Saludo automático (hora) | `getColombiaGreeting()` |
+| Mostrar fecha en prompt AI | `getColombiaDateTimeFormatted()` |
+| Parsear fecha de DB para mostrar | `parseLocalDate()` + `format()` |
 | Input type="date" value | `parseDateToInput()` |
-| Fecha de hoy para form | `getTodayLocal()` |
 | Enviar fecha a API | `formatDBDate()` |
 | Mostrar hora de cita | `parseTimeToDisplay()` |
-| Timestamp con hora (createdAt) | `new Date()` está OK |
+
+### Lugares donde se usa Colombia timezone:
+
+- **Dashboard API**: Cálculo de "hoy" y "mañana" para citas
+- **Tabata AI**: System prompt con fecha actual, citas del día
+- **P&G API**: Cálculo de meses para gráficos
+- **WhatsApp**: Saludo automático basado en hora
+- **RescheduleModal**: Fecha mínima para reagendar
+- **AppointmentModal**: Fecha por defecto al crear cita
 
 ---
 

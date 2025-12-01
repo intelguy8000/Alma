@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isRealModeEnabled, getPatientIdsWithInvoice } from "@/lib/realMode";
 import { startOfDay, endOfDay, subDays, startOfYear, subMonths, format, startOfWeek, addDays } from "date-fns";
+import { getColombiaToday } from "@/lib/dates";
 
 // GET /api/dashboard - Get dashboard statistics
 export async function GET(request: NextRequest) {
@@ -251,9 +252,7 @@ export async function GET(request: NextRequest) {
 
     // Get patients data for line chart (by day of week)
     // Use Colombia timezone to ensure correct "today" calculation
-    const colombiaDateStr = new Date().toLocaleDateString("en-CA", { timeZone: "America/Bogota" });
-    const [colYear, colMonth, colDay] = colombiaDateStr.split("-").map(Number);
-    const today = new Date(colYear, colMonth - 1, colDay);
+    const today = getColombiaToday();
     const weekStart = startOfWeek(today, { weekStartsOn: 1 });
     const dayLabels = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 

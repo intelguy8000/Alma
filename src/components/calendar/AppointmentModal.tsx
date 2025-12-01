@@ -18,6 +18,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getColombiaToday } from "@/lib/dates";
 
 export interface AppointmentData {
   id?: string;
@@ -79,7 +80,7 @@ export function AppointmentModal({
     id: "",
     patientId: "",
     patientName: "",
-    date: new Date(),
+    date: getColombiaToday(),
     startTime: "09:00",
     endTime: "10:00",
     type: "presencial",
@@ -98,7 +99,7 @@ export function AppointmentModal({
       setFormData((prev) => ({
         ...prev,
         ...initialData,
-        date: initialData.date || new Date(),
+        date: initialData.date || getColombiaToday(),
       }));
       if (initialData.patientName) {
         setPatientSearch(initialData.patientName);

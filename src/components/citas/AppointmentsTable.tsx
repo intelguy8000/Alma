@@ -16,6 +16,7 @@ import {
   Banknote,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getColombiaGreeting } from "@/lib/dates";
 
 // WhatsApp icon SVG component
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -94,23 +95,8 @@ export function AppointmentsTable({
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const handleWhatsAppCopy = async (appointment: Appointment) => {
-    // Get current time in Colombia timezone (UTC-5)
-    const colombiaTime = new Date().toLocaleTimeString("en-US", {
-      timeZone: "America/Bogota",
-      hour: "numeric",
-      hour12: false,
-    });
-    const hour = parseInt(colombiaTime, 10);
-
-    // Determine greeting based on Colombia time
-    let greeting: string;
-    if (hour >= 5 && hour < 12) {
-      greeting = "Buenos días";
-    } else if (hour >= 12 && hour < 18) {
-      greeting = "Buenas tardes";
-    } else {
-      greeting = "Buenas noches";
-    }
+    // Get greeting based on Colombia time
+    const greeting = getColombiaGreeting();
 
     // Get first name only, capitalized
     const firstName = appointment.patientName
