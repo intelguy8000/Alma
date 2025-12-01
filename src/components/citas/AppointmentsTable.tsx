@@ -91,8 +91,54 @@ export function AppointmentsTable({
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const handleWhatsAppCopy = async (appointment: Appointment) => {
-    const dateFormatted = format(appointment.date, "EEEE d 'de' MMMM", { locale: es });
-    const message = `Hola ${appointment.patientName.split(" ")[0]}, te recordamos tu cita el ${dateFormatted} a las ${appointment.startTime} en ${appointment.locationLabel}. Medicina del Alma.`;
+    // Get current time in Colombia timezone (UTC-5)
+    const colombiaTime = new Date().toLocaleTimeString("en-US", {
+      timeZone: "America/Bogota",
+      hour: "numeric",
+      hour12: false,
+    });
+    const hour = parseInt(colombiaTime, 10);
+
+    // Determine greeting based on Colombia time
+    let greeting: string;
+    if (hour >= 5 && hour < 12) {
+      greeting = "Buenos días";
+    } else if (hour >= 12 && hour < 18) {
+      greeting = "Buenas tardes";
+    } else {
+      greeting = "Buenas noches";
+    }
+
+    // Get first name only, capitalized
+    const firstName = appointment.patientName
+      .split(" ")[0]
+      .toLowerCase()
+      .replace(/^\w/, (c) => c.toUpperCase());
+
+    // Format day name (capitalized)
+    const dayName = format(appointment.date, "EEEE", { locale: es })
+      .replace(/^\w/, (c) => c.toUpperCase());
+
+    // Format date (e.g., "24 de Noviembre")
+    const dateFormatted = format(appointment.date, "d 'de' MMMM", { locale: es })
+      .replace(/de (\w)/, (_, c) => `de ${c.toUpperCase()}`);
+
+    // Format time to 12h (e.g., "11 am", "3 pm")
+    const [hourStr] = appointment.startTime.split(":");
+    const hourNum = parseInt(hourStr, 10);
+    const period = hourNum >= 12 ? "pm" : "am";
+    const hour12 = hourNum === 0 ? 12 : hourNum > 12 ? hourNum - 12 : hourNum;
+    const timeFormatted = `${hour12} ${period}`;
+
+    // Determine message based on appointment type
+    const isTerapiaChoque = appointment.type === "terapia_choque";
+
+    let message: string;
+    if (isTerapiaChoque) {
+      message = `${greeting} ${firstName}, soy Julio Zapata, médico, le estoy confirmando la cita agendada para el día ${dayName} ${dateFormatted} a las ${timeFormatted} - Sede La Ceja, quedo pendiente a la confirmación y muchas gracias.`;
+    } else {
+      message = `${greeting} ${firstName}, soy Julio Zapata, médico, le estoy confirmando la cita agendada para el día ${dayName} ${dateFormatted} a las ${timeFormatted} - La Ceja, Calle 7 sur 42-70 Edificio Fórum Consultorio 1103 o Virtual, quedo pendiente a la confirmación y muchas gracias.`;
+    }
 
     try {
       await navigator.clipboard.writeText(message);
