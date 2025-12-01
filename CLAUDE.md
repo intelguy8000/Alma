@@ -672,4 +672,33 @@ Neon PostgreSQL incluye PITR como respaldo adicional:
 
 ---
 
-*Última actualización: Noviembre 2024*
+## Changelog Reciente
+
+### Diciembre 2024
+
+#### Timezone Colombia (America/Bogota)
+- **Estandarización completa** de timezone en toda la aplicación
+- Nuevas funciones centralizadas en `src/lib/dates.ts`:
+  - `getColombiaToday()`, `getColombiaTodayStr()`, `getColombiaTomorrow()`
+  - `getColombiaHour()`, `getColombiaGreeting()`, `getColombiaDateTimeFormatted()`
+- Corregidos: Dashboard API, Tabata AI, P&G API, WhatsApp, modales de citas
+
+#### Módulo de Pacientes
+- **Opción de eliminar pacientes** con validación (no permite si tiene citas o ventas)
+- Soft delete con registro de auditoría
+
+#### Cuentas Bancarias
+- Nuevos campos: `accountHolder`, `accountHolderId`, `accountType`
+- **Botón "Datos de Pago"** en tabla de citas para copiar mensaje con información bancaria
+
+#### Mensaje WhatsApp
+- Formato mejorado con saludo automático según hora Colombia
+- Incluye nombre del paciente, día, fecha y hora formateados
+
+#### Tabata AI
+- Formato de respuestas mejorado (sin tablas markdown)
+- Timezone corregido para fecha y citas del día
+
+---
+
+*Última actualización: Diciembre 2024*
