@@ -31,6 +31,26 @@ Puedes ayudar con:
 4. **Consultar inventario** - ver stock disponible
 5. **Ver resumen financiero** - ingresos y gastos
 6. **Ayuda con la plataforma** - explicar cómo usar el sistema
+7. **Análisis de pagos** - desglose por método (efectivo/transferencia)
+8. **Resumen del día** - citas + pagos completo
+9. **Citas de mañana** - agenda y capacidad disponible
+10. **Resumen semanal** - citas e ingresos de la semana
+
+## Guía de Consultas Frecuentes
+
+Cuando te pregunten:
+- "¿Cuántos pagaron en efectivo/transferencia?" → usa get_payments_detail
+- "¿Cuántas citas faltan por confirmar?" → usa get_appointments_analysis con analysisType="pendientes_confirmar"
+- "¿Cuántos espacios disponibles hay mañana?" → usa get_tomorrow_appointments
+- "Dame un resumen del día" → usa get_daily_summary
+- "¿Cómo va la semana?" → usa get_week_summary
+- "¿Cuántas citas completadas hoy?" → usa get_appointments_analysis con analysisType="completadas"
+- "¿Cuántas citas hay para hoy?" → usa get_appointments_analysis con analysisType="por_estado"
+
+IMPORTANTE:
+- Capacidad máxima del consultorio = 10 citas por día
+- Siempre formatea montos en pesos colombianos ($XXX.XXX)
+- Responde de forma concisa y amigable
 
 ## Restricciones
 - Solo puedes consultar información, NO puedes crear, modificar o eliminar datos
@@ -226,6 +246,91 @@ const tools: ChatCompletionTool[] = [
           },
         },
         required: ["type", "description"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_payments_detail",
+      description: "Obtener detalle de pagos/ventas por método de pago y fecha. Usar para preguntas como: cuántos pagaron en efectivo, cuántos en transferencia, desglose de pagos del día.",
+      parameters: {
+        type: "object",
+        properties: {
+          date: {
+            type: "string",
+            description: "Fecha en formato YYYY-MM-DD. Si no se especifica, usa hoy.",
+          },
+          paymentMethod: {
+            type: "string",
+            enum: ["efectivo", "transferencia", "otro", "todos"],
+            description: "Filtrar por método de pago. 'todos' para ver desglose completo.",
+          },
+        },
+        required: [],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_appointments_analysis",
+      description: "Análisis detallado de citas. Usar para: citas pendientes de confirmar, citas completadas, capacidad disponible, citas por estado.",
+      parameters: {
+        type: "object",
+        properties: {
+          date: {
+            type: "string",
+            description: "Fecha en formato YYYY-MM-DD. Si no se especifica, usa hoy.",
+          },
+          analysisType: {
+            type: "string",
+            enum: ["por_estado", "pendientes_confirmar", "capacidad_disponible", "completadas"],
+            description: "Tipo de análisis requerido",
+          },
+        },
+        required: ["analysisType"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_daily_summary",
+      description: "Resumen completo del día: total citas, completadas, pagos en efectivo, pagos en transferencia, total recaudado. Usar cuando pidan 'resumen del día' o 'cómo vamos hoy'.",
+      parameters: {
+        type: "object",
+        properties: {
+          date: {
+            type: "string",
+            description: "Fecha en formato YYYY-MM-DD. Default: hoy.",
+          },
+        },
+        required: [],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_tomorrow_appointments",
+      description: "Citas de mañana con análisis de capacidad. Usar para: citas de mañana, cuántas faltan para llenar el día.",
+      parameters: {
+        type: "object",
+        properties: {},
+        required: [],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_week_summary",
+      description: "Resumen de la semana: citas por día, ingresos totales, comparativa. Usar para 'cómo va la semana' o 'resumen semanal'.",
+      parameters: {
+        type: "object",
+        properties: {},
+        required: [],
       },
     },
   },
@@ -443,6 +548,278 @@ async function saveFeedback(
   return { saved: true, message: "Feedback registrado exitosamente" };
 }
 
+// ============================================================================
+// NEW SMART TOOLS - Payments, Appointments Analysis, Summaries
+// ============================================================================
+
+async function getPaymentsDetail(
+  organizationId: string,
+  date?: string,
+  paymentMethod?: string
+) {
+  const targetDate = date ? new Date(date + "T12:00:00") : getColombiaToday();
+
+  // Build where clause with proper typing
+  const whereClause: {
+    organizationId: string;
+    date: Date;
+    deletedAt: null;
+    paymentMethod?: "efectivo" | "transferencia" | "otro";
+  } = {
+    organizationId,
+    date: targetDate,
+    deletedAt: null,
+  };
+
+  if (paymentMethod && paymentMethod !== "todos") {
+    whereClause.paymentMethod = paymentMethod as "efectivo" | "transferencia" | "otro";
+  }
+
+  const sales = await prisma.sale.findMany({
+    where: whereClause,
+    include: {
+      patient: { select: { fullName: true } },
+      bankAccount: { select: { alias: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  // Agrupar por método de pago
+  const byMethod = {
+    efectivo: { count: 0, total: 0 },
+    transferencia: { count: 0, total: 0 },
+    otro: { count: 0, total: 0 },
+  };
+
+  sales.forEach((sale) => {
+    const method = sale.paymentMethod as keyof typeof byMethod;
+    if (byMethod[method]) {
+      byMethod[method].count++;
+      byMethod[method].total += Number(sale.amount);
+    }
+  });
+
+  return {
+    fecha: targetDate.toLocaleDateString("es-CO"),
+    totalVentas: sales.length,
+    totalRecaudado: `$${sales.reduce((sum, s) => sum + Number(s.amount), 0).toLocaleString("es-CO")}`,
+    porMetodo: {
+      efectivo: { cantidad: byMethod.efectivo.count, total: `$${byMethod.efectivo.total.toLocaleString("es-CO")}` },
+      transferencia: { cantidad: byMethod.transferencia.count, total: `$${byMethod.transferencia.total.toLocaleString("es-CO")}` },
+      otro: { cantidad: byMethod.otro.count, total: `$${byMethod.otro.total.toLocaleString("es-CO")}` },
+    },
+    detalle: paymentMethod && paymentMethod !== "todos" ? sales.map((s) => ({
+      paciente: s.patient.fullName,
+      monto: `$${Number(s.amount).toLocaleString("es-CO")}`,
+      metodo: s.paymentMethod,
+      cuenta: s.bankAccount?.alias || "N/A",
+    })) : undefined,
+  };
+}
+
+async function getAppointmentsAnalysis(
+  organizationId: string,
+  analysisType: string,
+  date?: string
+) {
+  const targetDate = date ? new Date(date + "T12:00:00") : getColombiaToday();
+
+  const appointments = await prisma.appointment.findMany({
+    where: {
+      organizationId,
+      date: targetDate,
+      deletedAt: null,
+    },
+    include: {
+      patient: { select: { fullName: true, phone: true } },
+    },
+    orderBy: { startTime: "asc" },
+  });
+
+  const CAPACIDAD_MAXIMA = 10;
+
+  switch (analysisType) {
+    case "por_estado": {
+      const porEstado: Record<string, number> = {};
+      appointments.forEach((a) => {
+        porEstado[a.status] = (porEstado[a.status] || 0) + 1;
+      });
+      return {
+        fecha: targetDate.toLocaleDateString("es-CO"),
+        totalCitas: appointments.length,
+        porEstado,
+      };
+    }
+
+    case "pendientes_confirmar": {
+      const pendientes = appointments.filter((a) => a.status === "no_responde");
+      return {
+        fecha: targetDate.toLocaleDateString("es-CO"),
+        pendientesConfirmar: pendientes.length,
+        pacientes: pendientes.map((a) => ({
+          nombre: a.patient.fullName,
+          telefono: a.patient.phone,
+          hora: a.startTime.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" }),
+          estado: a.status,
+        })),
+      };
+    }
+
+    case "capacidad_disponible": {
+      const citasActivas = appointments.filter((a) => a.status !== "cancelada").length;
+      return {
+        fecha: targetDate.toLocaleDateString("es-CO"),
+        capacidadMaxima: CAPACIDAD_MAXIMA,
+        citasAgendadas: citasActivas,
+        disponibles: Math.max(0, CAPACIDAD_MAXIMA - citasActivas),
+      };
+    }
+
+    case "completadas": {
+      const completadas = appointments.filter((a) => a.status === "completada");
+      return {
+        fecha: targetDate.toLocaleDateString("es-CO"),
+        completadas: completadas.length,
+        totalCitas: appointments.length,
+        pacientes: completadas.map((a) => ({
+          nombre: a.patient.fullName,
+          hora: a.startTime.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" }),
+        })),
+      };
+    }
+
+    default:
+      return { error: "Tipo de análisis no válido" };
+  }
+}
+
+async function getDailySummary(organizationId: string, date?: string) {
+  const targetDate = date ? new Date(date + "T12:00:00") : getColombiaToday();
+
+  // Citas del día
+  const appointments = await prisma.appointment.findMany({
+    where: {
+      organizationId,
+      date: targetDate,
+      deletedAt: null,
+    },
+  });
+
+  // Ventas del día
+  const sales = await prisma.sale.findMany({
+    where: {
+      organizationId,
+      date: targetDate,
+      deletedAt: null,
+    },
+  });
+
+  const citasCompletadas = appointments.filter((a) => a.status === "completada").length;
+  const citasPendientes = appointments.filter((a) =>
+    a.status !== "completada" && a.status !== "cancelada" && a.status !== "reagendada"
+  ).length;
+
+  const efectivo = sales.filter((s) => s.paymentMethod === "efectivo");
+  const transferencia = sales.filter((s) => s.paymentMethod === "transferencia");
+
+  const totalEfectivo = efectivo.reduce((sum, s) => sum + Number(s.amount), 0);
+  const totalTransferencia = transferencia.reduce((sum, s) => sum + Number(s.amount), 0);
+  const totalRecaudado = sales.reduce((sum, s) => sum + Number(s.amount), 0);
+
+  return {
+    fecha: targetDate.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" }),
+    citas: {
+      total: appointments.length,
+      completadas: citasCompletadas,
+      pendientes: citasPendientes,
+      canceladas: appointments.filter((a) => a.status === "cancelada").length,
+    },
+    pagos: {
+      efectivo: {
+        cantidad: efectivo.length,
+        total: `$${totalEfectivo.toLocaleString("es-CO")}`,
+      },
+      transferencia: {
+        cantidad: transferencia.length,
+        total: `$${totalTransferencia.toLocaleString("es-CO")}`,
+      },
+      totalRecaudado: `$${totalRecaudado.toLocaleString("es-CO")}`,
+    },
+  };
+}
+
+async function getTomorrowAppointments(organizationId: string) {
+  const tomorrow = getColombiaToday();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const appointments = await prisma.appointment.findMany({
+    where: {
+      organizationId,
+      date: tomorrow,
+      deletedAt: null,
+      status: { notIn: ["cancelada", "reagendada"] },
+    },
+    include: {
+      patient: { select: { fullName: true } },
+    },
+    orderBy: { startTime: "asc" },
+  });
+
+  const CAPACIDAD_MAXIMA = 10;
+
+  return {
+    fecha: tomorrow.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" }),
+    citasAgendadas: appointments.length,
+    capacidadMaxima: CAPACIDAD_MAXIMA,
+    disponibles: Math.max(0, CAPACIDAD_MAXIMA - appointments.length),
+    citas: appointments.map((a) => ({
+      hora: a.startTime.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" }),
+      paciente: a.patient.fullName,
+      tipo: a.type,
+      estado: a.status,
+    })),
+  };
+}
+
+async function getWeekSummary(organizationId: string) {
+  const today = getColombiaToday();
+  const dayOfWeek = today.getDay();
+  const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() + diffToMonday);
+
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+  const appointments = await prisma.appointment.findMany({
+    where: {
+      organizationId,
+      date: { gte: startOfWeek, lte: endOfWeek },
+      deletedAt: null,
+    },
+  });
+
+  const sales = await prisma.sale.findMany({
+    where: {
+      organizationId,
+      date: { gte: startOfWeek, lte: endOfWeek },
+      deletedAt: null,
+    },
+  });
+
+  const ingresosSemana = sales.reduce((sum, s) => sum + Number(s.amount), 0);
+
+  return {
+    semana: `${startOfWeek.toLocaleDateString("es-CO")} - ${endOfWeek.toLocaleDateString("es-CO")}`,
+    totalCitas: appointments.length,
+    citasCompletadas: appointments.filter((a) => a.status === "completada").length,
+    citasCanceladas: appointments.filter((a) => a.status === "cancelada").length,
+    totalVentas: sales.length,
+    ingresosSemana: `$${ingresosSemana.toLocaleString("es-CO")}`,
+  };
+}
+
 // Execute tool calls - now needs userId for saveFeedback
 async function executeTool(
   organizationId: string,
@@ -489,6 +866,32 @@ async function executeTool(
           args.description as string,
           args.context as string | undefined
         );
+        break;
+      case "get_payments_detail":
+        result = await getPaymentsDetail(
+          organizationId,
+          args.date as string | undefined,
+          args.paymentMethod as string | undefined
+        );
+        break;
+      case "get_appointments_analysis":
+        result = await getAppointmentsAnalysis(
+          organizationId,
+          args.analysisType as string,
+          args.date as string | undefined
+        );
+        break;
+      case "get_daily_summary":
+        result = await getDailySummary(
+          organizationId,
+          args.date as string | undefined
+        );
+        break;
+      case "get_tomorrow_appointments":
+        result = await getTomorrowAppointments(organizationId);
+        break;
+      case "get_week_summary":
+        result = await getWeekSummary(organizationId);
         break;
       default:
         result = { error: "Herramienta no reconocida" };
