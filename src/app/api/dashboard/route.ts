@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isRealModeEnabled, getPatientIdsWithInvoice } from "@/lib/realMode";
-import { startOfDay, endOfDay, subDays, startOfMonth, startOfWeek, format } from "date-fns";
+import { startOfDay, endOfDay, subDays, startOfMonth, format } from "date-fns";
 import { getColombiaToday, getColombiaTomorrow } from "@/lib/dates";
 
 // GET /api/dashboard - Get dashboard statistics
@@ -170,77 +170,6 @@ export async function GET(request: NextRequest) {
 
     const atRiskPatientsCount = atRiskPatientsList.length;
 
-    // Get appointments data for chart (by week) - last 30 days
-    const thirtyDaysAgo = subDays(today, 30);
-    const appointments = await prisma.appointment.findMany({
-      where: {
-        organizationId,
-        deletedAt: null,
-        ...(realModeActive && allowedPatientIds && { patientId: { in: allowedPatientIds } }),
-        date: {
-          gte: thirtyDaysAgo,
-          lte: today,
-        },
-      },
-      include: {
-        patient: {
-          select: {
-            firstAppointmentDate: true,
-          },
-        },
-      },
-    });
-
-    // Group appointments by week
-    const appointmentsByWeek: Record<string, {
-      presenciales: number;
-      virtuales: number;
-      nuevos: number;
-      antiguos: number;
-      terapiaChoque: number;
-    }> = {};
-
-    appointments.forEach((apt) => {
-      const weekStart = startOfWeek(new Date(apt.date), { weekStartsOn: 1 });
-      const weekKey = format(weekStart, "yyyy-MM-dd");
-
-      if (!appointmentsByWeek[weekKey]) {
-        appointmentsByWeek[weekKey] = {
-          presenciales: 0,
-          virtuales: 0,
-          nuevos: 0,
-          antiguos: 0,
-          terapiaChoque: 0,
-        };
-      }
-
-      if (apt.type === "presencial") {
-        appointmentsByWeek[weekKey].presenciales++;
-      } else if (apt.type === "virtual") {
-        appointmentsByWeek[weekKey].virtuales++;
-      } else if (apt.type === "terapia_choque") {
-        appointmentsByWeek[weekKey].terapiaChoque++;
-      }
-
-      // Check if this is the patient's first appointment
-      const isNew = apt.patient.firstAppointmentDate &&
-        new Date(apt.patient.firstAppointmentDate).getTime() === new Date(apt.date).getTime();
-
-      if (isNew) {
-        appointmentsByWeek[weekKey].nuevos++;
-      } else {
-        appointmentsByWeek[weekKey].antiguos++;
-      }
-    });
-
-    // Convert to array for chart
-    const appointmentsData = Object.entries(appointmentsByWeek)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([weekKey, data], index) => ({
-        name: `Sem ${index + 1}`,
-        ...data,
-      }));
-
     // Get tomorrow's appointments ONLY (using Colombia timezone)
     const tomorrow = getColombiaTomorrow();
     const tomorrowStart = startOfDay(tomorrow);
@@ -312,8 +241,6 @@ export async function GET(request: NextRequest) {
       atRiskPatientsCount,
       atRiskPatientsList,
       atRiskDays,
-      // Charts data
-      appointmentsData,
       // Tomorrow appointments data
       tomorrowAppointments,
       tomorrowStats: {

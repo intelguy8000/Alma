@@ -5,7 +5,7 @@ import { Users, UserPlus, Repeat, AlertTriangle } from "lucide-react";
 import {
   Scorecard,
   PatientsLineChart,
-  AppointmentsBarChart,
+  AppointmentsDonutChart,
   UpcomingAppointments,
   AtRiskPatientsModal,
 } from "@/components/dashboard";
@@ -25,14 +25,6 @@ interface DashboardData {
   atRiskPatientsCount: number;
   atRiskPatientsList: AtRiskPatient[];
   atRiskDays: number;
-  appointmentsData: {
-    name: string;
-    presenciales: number;
-    virtuales: number;
-    nuevos: number;
-    antiguos: number;
-    terapiaChoque: number;
-  }[];
   tomorrowAppointments: {
     id: string;
     time: string;
@@ -161,7 +153,7 @@ export default function DashboardPage() {
           {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <PatientsLineChart />
-            <AppointmentsBarChart data={data.appointmentsData} />
+            <AppointmentsDonutChart />
           </div>
 
           {/* Tomorrow Appointments */}
