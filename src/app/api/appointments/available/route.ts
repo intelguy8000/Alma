@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       deletedAt: null,
       status: { in: ["completada", "confirmada"] },
       sales: {
-        none: {},
+        none: { deletedAt: null }, // Solo considerar ventas activas (no eliminadas)
       },
     };
 
