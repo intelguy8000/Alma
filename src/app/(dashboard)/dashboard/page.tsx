@@ -33,12 +33,6 @@ interface DashboardData {
     antiguos: number;
     terapiaChoque: number;
   }[];
-  patientsData: {
-    day: string;
-    atendidos: number;
-    cancelados: number;
-    proyeccion?: number;
-  }[];
   tomorrowAppointments: {
     id: string;
     time: string;
@@ -166,7 +160,7 @@ export default function DashboardPage() {
 
           {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <PatientsLineChart data={data.patientsData} />
+            <PatientsLineChart />
             <AppointmentsBarChart data={data.appointmentsData} />
           </div>
 

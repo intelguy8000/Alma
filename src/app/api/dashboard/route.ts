@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isRealModeEnabled, getPatientIdsWithInvoice } from "@/lib/realMode";
-import { startOfDay, endOfDay, subDays, startOfMonth, startOfWeek, addDays, format } from "date-fns";
+import { startOfDay, endOfDay, subDays, startOfMonth, startOfWeek, format } from "date-fns";
 import { getColombiaToday, getColombiaTomorrow } from "@/lib/dates";
 
 // GET /api/dashboard - Get dashboard statistics
@@ -241,67 +241,6 @@ export async function GET(request: NextRequest) {
         ...data,
       }));
 
-    // Get patients data for line chart (by day of week)
-    const currentWeekStart = startOfWeek(today, { weekStartsOn: 1 });
-    const dayLabels = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
-
-    const patientsData = await Promise.all(
-      dayLabels.map(async (day, index) => {
-        const dayDate = addDays(currentWeekStart, index);
-        const dayStart = startOfDay(dayDate);
-        const dayEnd = endOfDay(dayDate);
-        const isFuture = dayDate > today;
-
-        // Count patients attended = patients with sales on this day
-        const attended = await prisma.sale.count({
-          where: {
-            organizationId,
-            deletedAt: null,
-            ...(realModeActive && { hasElectronicInvoice: true }),
-            date: {
-              gte: dayStart,
-              lte: dayEnd,
-            },
-          },
-        });
-
-        const cancelled = await prisma.appointment.count({
-          where: {
-            organizationId,
-            deletedAt: null,
-            ...(realModeActive && allowedPatientIds && { patientId: { in: allowedPatientIds } }),
-            date: {
-              gte: dayStart,
-              lte: dayEnd,
-            },
-            status: "cancelada",
-          },
-        });
-
-        const scheduled = await prisma.appointment.count({
-          where: {
-            organizationId,
-            deletedAt: null,
-            ...(realModeActive && allowedPatientIds && { patientId: { in: allowedPatientIds } }),
-            date: {
-              gte: dayStart,
-              lte: dayEnd,
-            },
-            status: {
-              in: ["confirmada", "no_responde"],
-            },
-          },
-        });
-
-        return {
-          day,
-          atendidos: attended,
-          cancelados: cancelled,
-          proyeccion: isFuture ? scheduled : undefined,
-        };
-      })
-    );
-
     // Get tomorrow's appointments ONLY (using Colombia timezone)
     const tomorrow = getColombiaTomorrow();
     const tomorrowStart = startOfDay(tomorrow);
@@ -375,7 +314,6 @@ export async function GET(request: NextRequest) {
       atRiskDays,
       // Charts data
       appointmentsData,
-      patientsData,
       // Tomorrow appointments data
       tomorrowAppointments,
       tomorrowStats: {
