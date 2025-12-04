@@ -410,7 +410,6 @@ export default function CitasPage() {
           title="Total Citas"
           value={scorecards.total.toString()}
           subtitle="En el período"
-          change={0}
           icon={CalendarDays}
           iconColor="bg-blue-500"
         />
@@ -418,7 +417,6 @@ export default function CitasPage() {
           title="Confirmadas"
           value={scorecards.confirmadas.toString()}
           subtitle="Pendientes de atender"
-          change={0}
           icon={CheckCircle}
           iconColor="bg-emerald-500"
         />
@@ -426,7 +424,6 @@ export default function CitasPage() {
           title="Canceladas"
           value={scorecards.canceladas.toString()}
           subtitle="En el período"
-          change={0}
           icon={XCircle}
           iconColor="bg-red-500"
         />
@@ -434,7 +431,6 @@ export default function CitasPage() {
           title="Tasa Asistencia"
           value={`${scorecards.asistencia}%`}
           subtitle="Confirmadas + Completadas"
-          change={0}
           icon={Percent}
           iconColor="bg-violet-500"
         />

@@ -1,28 +1,30 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { Users, DollarSign, Receipt, TrendingUp, Calendar, ChevronDown } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Users, UserPlus, Repeat, AlertTriangle } from "lucide-react";
 import {
   Scorecard,
   PatientsLineChart,
   AppointmentsBarChart,
   UpcomingAppointments,
+  AtRiskPatientsModal,
 } from "@/components/dashboard";
-import { formatCOP } from "@/lib/utils";
-import { format, subDays, startOfYear, subMonths } from "date-fns";
-import { es } from "date-fns/locale";
+
+interface AtRiskPatient {
+  id: string;
+  fullName: string;
+  phone: string | null;
+  lastAppointmentDate: string;
+  daysSinceLastVisit: number;
+}
 
 interface DashboardData {
   activePatients: number;
-  activePatientsChange: number;
-  totalSales: number;
-  previousSales: number;
-  salesChange: number;
-  totalExpenses: number;
-  previousExpenses: number;
-  expensesChange: number;
-  profit: number;
-  profitChange: number;
+  newPatientsThisMonth: number;
+  recurrentPatientsThisMonth: number;
+  atRiskPatientsCount: number;
+  atRiskPatientsList: AtRiskPatient[];
+  atRiskDays: number;
   appointmentsData: {
     name: string;
     presenciales: number;
@@ -46,68 +48,17 @@ interface DashboardData {
   }[];
 }
 
-interface DateRange {
-  startDate: Date;
-  endDate: Date;
-}
-
-const presetRanges = [
-  { label: "Última semana", value: "7d" },
-  { label: "Último mes", value: "30d" },
-  { label: "Últimos 3 meses", value: "90d" },
-  { label: "Este año", value: "year" },
-  { label: "Personalizado", value: "custom" },
-];
-
-// Helper to get dates from preset
-function getDateRangeFromPreset(preset: string): DateRange {
-  const today = new Date();
-  switch (preset) {
-    case "7d":
-      return { startDate: subDays(today, 7), endDate: today };
-    case "30d":
-      return { startDate: subDays(today, 30), endDate: today };
-    case "90d":
-      return { startDate: subMonths(today, 3), endDate: today };
-    case "year":
-      return { startDate: startOfYear(today), endDate: today };
-    default:
-      return { startDate: subDays(today, 30), endDate: today };
-  }
-}
-
 export default function DashboardPage() {
-  const [selectedPreset, setSelectedPreset] = useState("30d");
-  const [dateRange, setDateRange] = useState<DateRange>(getDateRangeFromPreset("30d"));
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [showCustomPicker, setShowCustomPicker] = useState(false);
   const [data, setData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [atRiskDays, setAtRiskDays] = useState(30);
+  const [showAtRiskModal, setShowAtRiskModal] = useState(false);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowDropdown(false);
-        setShowCustomPicker(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (days: number = atRiskDays) => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams();
-
-      if (selectedPreset === "custom") {
-        params.append("startDate", format(dateRange.startDate, "yyyy-MM-dd"));
-        params.append("endDate", format(dateRange.endDate, "yyyy-MM-dd"));
-      } else {
-        params.append("range", selectedPreset);
-      }
+      params.append("atRiskDays", days.toString());
 
       const response = await fetch(`/api/dashboard?${params.toString()}`);
       if (response.ok) {
@@ -119,159 +70,25 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedPreset, dateRange]);
+  }, [atRiskDays]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  const handlePresetSelect = (preset: string) => {
-    if (preset === "custom") {
-      setShowCustomPicker(true);
-    } else {
-      setSelectedPreset(preset);
-      setDateRange(getDateRangeFromPreset(preset));
-      setShowDropdown(false);
-      setShowCustomPicker(false);
-    }
+  const handleAtRiskDaysChange = (days: number) => {
+    setAtRiskDays(days);
+    loadData(days);
   };
-
-  const handleCustomDateChange = (type: "start" | "end", value: string) => {
-    const newDate = new Date(value);
-    if (type === "start") {
-      setDateRange(prev => ({ ...prev, startDate: newDate }));
-    } else {
-      setDateRange(prev => ({ ...prev, endDate: newDate }));
-    }
-  };
-
-  const applyCustomRange = () => {
-    setSelectedPreset("custom");
-    setShowDropdown(false);
-    setShowCustomPicker(false);
-  };
-
-  const getDisplayLabel = () => {
-    if (selectedPreset === "custom") {
-      return `${format(dateRange.startDate, "d MMM", { locale: es })} - ${format(dateRange.endDate, "d MMM yyyy", { locale: es })}`;
-    }
-    return presetRanges.find(r => r.value === selectedPreset)?.label || "";
-  };
-
-  const scorecardData = data ? [
-    {
-      title: "Pacientes Activos",
-      value: data.activePatients.toString(),
-      subtitle: getDisplayLabel(),
-      change: data.activePatientsChange,
-      icon: Users,
-      iconColor: "bg-[#6B9080]",
-      bgColor: "bg-[#CCE3DE]",
-      textColor: "text-[#3D5A4C]",
-    },
-    {
-      title: "Ventas",
-      value: formatCOP(data.totalSales),
-      subtitle: `vs ${formatCOP(data.previousSales)} anterior`,
-      change: data.salesChange,
-      icon: DollarSign,
-      iconColor: "bg-[#84A98C]",
-      bgColor: "bg-[#D8E2DC]",
-      textColor: "text-[#3D5A4C]",
-    },
-    {
-      title: "Gastos",
-      value: formatCOP(data.totalExpenses),
-      subtitle: `vs ${formatCOP(data.previousExpenses)} anterior`,
-      change: data.expensesChange,
-      icon: Receipt,
-      iconColor: "bg-[#D4A574]",
-      bgColor: "bg-[#F5E6D3]",
-      textColor: "text-[#8B6914]",
-    },
-    {
-      title: "Utilidad",
-      value: formatCOP(data.profit),
-      subtitle: "Ventas - Gastos",
-      change: data.profitChange,
-      icon: TrendingUp,
-      iconColor: "bg-[#81C784]",
-      bgColor: "bg-[#E8F5E9]",
-      textColor: "text-[#2E7D32]",
-    },
-  ] : [];
 
   return (
     <div className="space-y-6">
-      {/* Page Header with Global Filter */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-[#2D3D35]">Dashboard</h1>
-          <p className="text-[#5C7A6B] mt-1">
-            Resumen general del consultorio
-          </p>
-        </div>
-        <div className="relative" ref={dropdownRef}>
-          <button
-            onClick={() => setShowDropdown(!showDropdown)}
-            className="flex items-center gap-2 bg-white border border-[#CCE3DE] rounded-lg px-3 py-2 shadow-sm hover:border-[#6B9080] transition-colors"
-          >
-            <Calendar className="w-4 h-4 text-[#6B9080]" />
-            <span className="text-sm text-[#3D5A4C] font-medium">{getDisplayLabel()}</span>
-            <ChevronDown className={`w-4 h-4 text-[#6B9080] transition-transform ${showDropdown ? "rotate-180" : ""}`} />
-          </button>
-
-          {showDropdown && (
-            <div className="absolute right-0 mt-2 bg-white border border-[#CCE3DE] rounded-lg shadow-lg z-50 min-w-[200px]">
-              {/* Preset options */}
-              <div className="py-1">
-                {presetRanges.map((range) => (
-                  <button
-                    key={range.value}
-                    onClick={() => handlePresetSelect(range.value)}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-[#F6FFF8] transition-colors ${
-                      selectedPreset === range.value && range.value !== "custom"
-                        ? "bg-[#CCE3DE] text-[#3D5A4C] font-medium"
-                        : "text-[#5C7A6B]"
-                    }`}
-                  >
-                    {range.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Custom date picker */}
-              {showCustomPicker && (
-                <div className="border-t border-[#CCE3DE] p-4 space-y-3">
-                  <div>
-                    <label className="block text-xs text-[#5C7A6B] mb-1">Desde</label>
-                    <input
-                      type="date"
-                      value={format(dateRange.startDate, "yyyy-MM-dd")}
-                      onChange={(e) => handleCustomDateChange("start", e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-[#CCE3DE] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B9080] focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-[#5C7A6B] mb-1">Hasta</label>
-                    <input
-                      type="date"
-                      value={format(dateRange.endDate, "yyyy-MM-dd")}
-                      onChange={(e) => handleCustomDateChange("end", e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-[#CCE3DE] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B9080] focus:border-transparent"
-                    />
-                  </div>
-                  <button
-                    onClick={applyCustomRange}
-                    className="w-full py-2 bg-[#6B9080] text-white text-sm font-medium rounded-lg hover:bg-[#5a7a6d] transition-colors"
-                  >
-                    Aplicar
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+      {/* Page Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-[#2D3D35]">Dashboard</h1>
+        <p className="text-[#5C7A6B] mt-1">
+          Resumen de retención y frecuencia de pacientes
+        </p>
       </div>
 
       {isLoading ? (
@@ -292,19 +109,51 @@ export default function DashboardPage() {
         <>
           {/* Scorecards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {scorecardData.map((card) => (
-              <Scorecard
-                key={card.title}
-                title={card.title}
-                value={card.value}
-                subtitle={card.subtitle}
-                change={card.change}
-                icon={card.icon}
-                iconColor={card.iconColor}
-                bgColor={card.bgColor}
-                textColor={card.textColor}
-              />
-            ))}
+            {/* 1. Pacientes Activos */}
+            <Scorecard
+              title="Pacientes Activos"
+              value={data.activePatients.toString()}
+              subtitle="Último trimestre"
+              icon={Users}
+              iconColor="bg-[#6B9080]"
+              bgColor="bg-[#CCE3DE]"
+              textColor="text-[#3D5A4C]"
+            />
+
+            {/* 2. Nuevos Este Mes */}
+            <Scorecard
+              title="Nuevos Este Mes"
+              value={data.newPatientsThisMonth.toString()}
+              subtitle="Primera cita este mes"
+              icon={UserPlus}
+              iconColor="bg-[#2E7D32]"
+              bgColor="bg-[#E8F5E9]"
+              textColor="text-[#1B5E20]"
+            />
+
+            {/* 3. Recurrentes Este Mes */}
+            <Scorecard
+              title="Recurrentes"
+              value={data.recurrentPatientsThisMonth.toString()}
+              subtitle="2+ citas este mes"
+              icon={Repeat}
+              iconColor="bg-[#1565C0]"
+              bgColor="bg-[#E3F2FD]"
+              textColor="text-[#0D47A1]"
+            />
+
+            {/* 4. En Riesgo - Clickeable */}
+            <Scorecard
+              title="En Riesgo"
+              value={data.atRiskPatientsCount.toString()}
+              subtitle={`Sin cita en ${atRiskDays}+ días`}
+              icon={AlertTriangle}
+              iconColor="bg-[#C62828]"
+              bgColor="bg-[#FFEBEE]"
+              textColor="text-[#B71C1C]"
+              clickable
+              onClick={() => setShowAtRiskModal(true)}
+            />
           </div>
 
           {/* Charts Row */}
@@ -315,6 +164,15 @@ export default function DashboardPage() {
 
           {/* Upcoming Appointments */}
           <UpcomingAppointments appointments={data.upcomingAppointments} />
+
+          {/* At Risk Patients Modal */}
+          <AtRiskPatientsModal
+            isOpen={showAtRiskModal}
+            onClose={() => setShowAtRiskModal(false)}
+            patients={data.atRiskPatientsList}
+            currentDays={atRiskDays}
+            onDaysChange={handleAtRiskDaysChange}
+          />
         </>
       )}
     </div>

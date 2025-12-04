@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isRealModeEnabled, getPatientIdsWithInvoice } from "@/lib/realMode";
-import { startOfDay, endOfDay, subDays, startOfYear, subMonths, format, startOfWeek, addDays } from "date-fns";
+import { startOfDay, endOfDay, subDays, startOfMonth, startOfWeek, addDays, format } from "date-fns";
 import { getColombiaToday } from "@/lib/dates";
 
 // GET /api/dashboard - Get dashboard statistics
@@ -15,12 +15,9 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const range = searchParams.get("range") || "30d";
-    const startDateParam = searchParams.get("startDate");
-    const endDateParam = searchParams.get("endDate");
+    const atRiskDays = parseInt(searchParams.get("atRiskDays") || "30", 10);
 
     const organizationId = session.user.organizationId;
-    const now = new Date();
 
     // Check if real mode is enabled
     const realModeActive = await isRealModeEnabled(organizationId);
@@ -30,170 +27,159 @@ export async function GET(request: NextRequest) {
       allowedPatientIds = await getPatientIdsWithInvoice(organizationId);
     }
 
-    // Calculate date range
-    let startDate: Date;
-    let endDate = endOfDay(now);
-    let previousStartDate: Date;
-    let previousEndDate: Date;
+    // Use Colombia timezone for consistent date calculations
+    const today = getColombiaToday();
+    const monthStart = startOfMonth(today);
+    const ninetyDaysAgo = subDays(today, 90);
+    const atRiskCutoff = subDays(today, atRiskDays);
 
-    if (startDateParam && endDateParam) {
-      startDate = startOfDay(new Date(startDateParam));
-      endDate = endOfDay(new Date(endDateParam));
-      const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-      previousEndDate = subDays(startDate, 1);
-      previousStartDate = subDays(previousEndDate, daysDiff);
-    } else {
-      switch (range) {
-        case "7d":
-          startDate = startOfDay(subDays(now, 7));
-          previousStartDate = startOfDay(subDays(now, 14));
-          previousEndDate = endOfDay(subDays(now, 8));
-          break;
-        case "90d":
-          startDate = startOfDay(subMonths(now, 3));
-          previousStartDate = startOfDay(subMonths(now, 6));
-          previousEndDate = endOfDay(subMonths(now, 3));
-          break;
-        case "year":
-          startDate = startOfYear(now);
-          previousStartDate = startOfYear(subDays(startOfYear(now), 1));
-          previousEndDate = endOfDay(subDays(startOfYear(now), 1));
-          break;
-        default: // 30d
-          startDate = startOfDay(subDays(now, 30));
-          previousStartDate = startOfDay(subDays(now, 60));
-          previousEndDate = endOfDay(subDays(now, 31));
-      }
-    }
-
-    // Get active patients (patients with at least one appointment in the range)
+    // 1. PACIENTES ACTIVOS - Pacientes con al menos 1 cita en últimos 90 días
     const activePatients = await prisma.patient.count({
       where: {
         organizationId,
+        deletedAt: null,
         ...(realModeActive && allowedPatientIds && { id: { in: allowedPatientIds } }),
         appointments: {
           some: {
+            deletedAt: null,
             date: {
-              gte: startDate,
-              lte: endDate,
+              gte: ninetyDaysAgo,
+              lte: today,
             },
             status: {
-              notIn: ["cancelada"],
+              notIn: ["cancelada", "reagendada"],
             },
           },
         },
       },
     });
 
-    // Previous period active patients
-    const previousActivePatients = await prisma.patient.count({
+    // 2. NUEVOS ESTE MES - Pacientes cuya PRIMERA cita fue en el mes actual
+    const newPatientsThisMonth = await prisma.patient.count({
       where: {
         organizationId,
+        deletedAt: null,
+        ...(realModeActive && allowedPatientIds && { id: { in: allowedPatientIds } }),
+        firstAppointmentDate: {
+          gte: monthStart,
+          lte: today,
+        },
+      },
+    });
+
+    // 3. RECURRENTES ESTE MES - Pacientes con 2+ citas en el mes actual
+    const patientsWithAppointmentsThisMonth = await prisma.patient.findMany({
+      where: {
+        organizationId,
+        deletedAt: null,
         ...(realModeActive && allowedPatientIds && { id: { in: allowedPatientIds } }),
         appointments: {
           some: {
+            deletedAt: null,
             date: {
-              gte: previousStartDate,
-              lte: previousEndDate,
+              gte: monthStart,
+              lte: today,
             },
             status: {
-              notIn: ["cancelada"],
+              notIn: ["cancelada", "reagendada"],
+            },
+          },
+        },
+      },
+      select: {
+        id: true,
+        _count: {
+          select: {
+            appointments: {
+              where: {
+                deletedAt: null,
+                date: {
+                  gte: monthStart,
+                  lte: today,
+                },
+                status: {
+                  notIn: ["cancelada", "reagendada"],
+                },
+              },
             },
           },
         },
       },
     });
+    const recurrentPatientsThisMonth = patientsWithAppointmentsThisMonth.filter(
+      (p) => p._count.appointments >= 2
+    ).length;
 
-    // Get total sales for current period
-    const sales = await prisma.sale.aggregate({
+    // 4. EN RIESGO - Pacientes que han tenido citas antes pero llevan X días sin venir
+    // Get all patients who have had at least one appointment ever
+    const patientsWithHistory = await prisma.patient.findMany({
       where: {
         organizationId,
         deletedAt: null,
-        ...(realModeActive && { hasElectronicInvoice: true }),
-        date: {
-          gte: startDate,
-          lte: endDate,
+        ...(realModeActive && allowedPatientIds && { id: { in: allowedPatientIds } }),
+        appointments: {
+          some: {
+            deletedAt: null,
+            status: {
+              notIn: ["cancelada", "reagendada"],
+            },
+          },
         },
       },
-      _sum: {
-        amount: true,
-      },
-    });
-    const totalSales = Number(sales._sum.amount) || 0;
-
-    // Previous period sales
-    const previousSalesResult = await prisma.sale.aggregate({
-      where: {
-        organizationId,
-        deletedAt: null,
-        ...(realModeActive && { hasElectronicInvoice: true }),
-        date: {
-          gte: previousStartDate,
-          lte: previousEndDate,
+      select: {
+        id: true,
+        fullName: true,
+        phone: true,
+        appointments: {
+          where: {
+            deletedAt: null,
+            status: {
+              notIn: ["cancelada", "reagendada"],
+            },
+          },
+          orderBy: { date: "desc" },
+          take: 1,
+          select: {
+            date: true,
+          },
         },
       },
-      _sum: {
-        amount: true,
-      },
     });
-    const previousSales = Number(previousSalesResult._sum.amount) || 0;
 
-    // Get total expenses for current period
-    const expenses = await prisma.expense.aggregate({
-      where: {
-        organizationId,
-        deletedAt: null,
-        date: {
-          gte: startDate,
-          lte: endDate,
-        },
-      },
-      _sum: {
-        amount: true,
-      },
-    });
-    const totalExpenses = Number(expenses._sum.amount) || 0;
+    // Filter patients whose last appointment is older than atRiskCutoff
+    const atRiskPatientsList = patientsWithHistory
+      .filter((p) => {
+        if (p.appointments.length === 0) return false;
+        const lastAppointmentDate = new Date(p.appointments[0].date);
+        return lastAppointmentDate < atRiskCutoff;
+      })
+      .map((p) => {
+        const lastDate = new Date(p.appointments[0].date);
+        const daysSinceLastVisit = Math.floor(
+          (today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24)
+        );
+        return {
+          id: p.id,
+          fullName: p.fullName,
+          phone: p.phone,
+          lastAppointmentDate: lastDate.toISOString(),
+          daysSinceLastVisit,
+        };
+      })
+      .sort((a, b) => b.daysSinceLastVisit - a.daysSinceLastVisit);
 
-    // Previous period expenses
-    const previousExpensesResult = await prisma.expense.aggregate({
-      where: {
-        organizationId,
-        deletedAt: null,
-        date: {
-          gte: previousStartDate,
-          lte: previousEndDate,
-        },
-      },
-      _sum: {
-        amount: true,
-      },
-    });
-    const previousExpenses = Number(previousExpensesResult._sum.amount) || 0;
+    const atRiskPatientsCount = atRiskPatientsList.length;
 
-    // Calculate profit
-    const profit = totalSales - totalExpenses;
-    const previousProfit = previousSales - previousExpenses;
-
-    // Calculate percentage changes
-    const calcChange = (current: number, previous: number): number => {
-      if (previous === 0) return current > 0 ? 100 : 0;
-      return Math.round(((current - previous) / previous) * 100 * 10) / 10;
-    };
-
-    const activePatientsChange = calcChange(activePatients, previousActivePatients);
-    const salesChange = calcChange(totalSales, previousSales);
-    const expensesChange = calcChange(totalExpenses, previousExpenses);
-    const profitChange = calcChange(profit, previousProfit);
-
-    // Get appointments data for chart (by week)
+    // Get appointments data for chart (by week) - last 30 days
+    const thirtyDaysAgo = subDays(today, 30);
     const appointments = await prisma.appointment.findMany({
       where: {
         organizationId,
         deletedAt: null,
         ...(realModeActive && allowedPatientIds && { patientId: { in: allowedPatientIds } }),
         date: {
-          gte: startDate,
-          lte: endDate,
+          gte: thirtyDaysAgo,
+          lte: today,
         },
       },
       include: {
@@ -256,14 +242,12 @@ export async function GET(request: NextRequest) {
       }));
 
     // Get patients data for line chart (by day of week)
-    // Use Colombia timezone to ensure correct "today" calculation
-    const today = getColombiaToday();
-    const weekStart = startOfWeek(today, { weekStartsOn: 1 });
+    const currentWeekStart = startOfWeek(today, { weekStartsOn: 1 });
     const dayLabels = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
     const patientsData = await Promise.all(
       dayLabels.map(async (day, index) => {
-        const dayDate = addDays(weekStart, index);
+        const dayDate = addDays(currentWeekStart, index);
         const dayStart = startOfDay(dayDate);
         const dayEnd = endOfDay(dayDate);
         const isFuture = dayDate > today;
@@ -359,16 +343,14 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json({
+      // Scorecards data
       activePatients,
-      activePatientsChange,
-      totalSales,
-      previousSales,
-      salesChange,
-      totalExpenses,
-      previousExpenses,
-      expensesChange,
-      profit,
-      profitChange,
+      newPatientsThisMonth,
+      recurrentPatientsThisMonth,
+      atRiskPatientsCount,
+      atRiskPatientsList,
+      atRiskDays,
+      // Charts data
       appointmentsData,
       patientsData,
       upcomingAppointments,
