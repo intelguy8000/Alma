@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isRealModeEnabled, getPatientIdsWithInvoice } from "@/lib/realMode";
 import { startOfDay, endOfDay, subDays, startOfMonth, startOfWeek, addDays, format } from "date-fns";
-import { getColombiaToday } from "@/lib/dates";
+import { getColombiaToday, getColombiaTomorrow } from "@/lib/dates";
 
 // GET /api/dashboard - Get dashboard statistics
 export async function GET(request: NextRequest) {
@@ -302,19 +302,23 @@ export async function GET(request: NextRequest) {
       })
     );
 
-    // Get upcoming appointments for today and tomorrow
-    const tomorrowEnd = endOfDay(addDays(today, 1));
-    const upcomingAppointmentsRaw = await prisma.appointment.findMany({
+    // Get tomorrow's appointments ONLY (using Colombia timezone)
+    const tomorrow = getColombiaTomorrow();
+    const tomorrowStart = startOfDay(tomorrow);
+    const tomorrowEndDay = endOfDay(tomorrow);
+
+    // Get ALL tomorrow's appointments (excluding deleted and reagendada)
+    const tomorrowAppointmentsRaw = await prisma.appointment.findMany({
       where: {
         organizationId,
         deletedAt: null,
         ...(realModeActive && allowedPatientIds && { patientId: { in: allowedPatientIds } }),
         date: {
-          gte: startOfDay(today),
-          lte: tomorrowEnd,
+          gte: tomorrowStart,
+          lte: tomorrowEndDay,
         },
         status: {
-          in: ["confirmada", "no_responde", "reagendada"],
+          notIn: ["reagendada"],
         },
       },
       include: {
@@ -325,22 +329,41 @@ export async function GET(request: NextRequest) {
         },
       },
       orderBy: [
-        { date: "asc" },
         { startTime: "asc" },
       ],
-      take: 10,
     });
 
-    const upcomingAppointments = upcomingAppointmentsRaw.map((apt) => {
-      const timeStr = apt.startTime.toISOString().split("T")[1].substring(0, 5);
-      return {
-        id: apt.id,
-        time: timeStr,
-        patient: apt.patient.fullName,
-        type: apt.type,
-        status: apt.status,
-      };
+    // Calculate stats for banner
+    const totalTomorrow = tomorrowAppointmentsRaw.filter(a => a.status !== "cancelada").length;
+    const confirmedCount = tomorrowAppointmentsRaw.filter(a => a.status === "confirmada").length;
+    const pendingCount = tomorrowAppointmentsRaw.filter(a => a.status === "no_responde").length;
+    const cancelledCount = tomorrowAppointmentsRaw.filter(a => a.status === "cancelada").length;
+
+    // Only return non-confirmed appointments in the list (those needing action)
+    const tomorrowAppointments = tomorrowAppointmentsRaw
+      .filter(apt => apt.status !== "confirmada" && apt.status !== "cancelada")
+      .map((apt) => {
+        const timeStr = apt.startTime.toISOString().split("T")[1].substring(0, 5);
+        return {
+          id: apt.id,
+          time: timeStr,
+          patient: apt.patient.fullName,
+          type: apt.type,
+          status: apt.status,
+        };
+      });
+
+    // Format tomorrow's date for display
+    const tomorrowDateFormatted = tomorrow.toLocaleDateString("es-CO", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
     });
+    // Capitalize first letter
+    const tomorrowDateDisplay = tomorrowDateFormatted.charAt(0).toUpperCase() + tomorrowDateFormatted.slice(1);
+
+    // Date for link (YYYY-MM-DD)
+    const tomorrowDateLink = format(tomorrow, "yyyy-MM-dd");
 
     return NextResponse.json({
       // Scorecards data
@@ -353,7 +376,16 @@ export async function GET(request: NextRequest) {
       // Charts data
       appointmentsData,
       patientsData,
-      upcomingAppointments,
+      // Tomorrow appointments data
+      tomorrowAppointments,
+      tomorrowStats: {
+        total: totalTomorrow,
+        confirmed: confirmedCount,
+        pending: pendingCount,
+        cancelled: cancelledCount,
+      },
+      tomorrowDateDisplay,
+      tomorrowDateLink,
     });
   } catch (error) {
     console.error("Error fetching dashboard data:", error);

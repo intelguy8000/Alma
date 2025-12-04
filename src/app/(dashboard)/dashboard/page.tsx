@@ -39,13 +39,21 @@ interface DashboardData {
     cancelados: number;
     proyeccion?: number;
   }[];
-  upcomingAppointments: {
+  tomorrowAppointments: {
     id: string;
     time: string;
     patient: string;
     type: "presencial" | "virtual" | "terapia_choque";
     status: "confirmada" | "no_responde" | "cancelada" | "reagendada" | "completada";
   }[];
+  tomorrowStats: {
+    total: number;
+    confirmed: number;
+    pending: number;
+    cancelled: number;
+  };
+  tomorrowDateDisplay: string;
+  tomorrowDateLink: string;
 }
 
 export default function DashboardPage() {
@@ -162,8 +170,13 @@ export default function DashboardPage() {
             <AppointmentsBarChart data={data.appointmentsData} />
           </div>
 
-          {/* Upcoming Appointments */}
-          <UpcomingAppointments appointments={data.upcomingAppointments} />
+          {/* Tomorrow Appointments */}
+          <UpcomingAppointments
+            appointments={data.tomorrowAppointments}
+            stats={data.tomorrowStats}
+            dateDisplay={data.tomorrowDateDisplay}
+            dateLink={data.tomorrowDateLink}
+          />
 
           {/* At Risk Patients Modal */}
           <AtRiskPatientsModal
