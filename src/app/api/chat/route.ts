@@ -382,6 +382,7 @@ async function getTodayAppointments(organizationId: string) {
   const appointments = await prisma.appointment.findMany({
     where: {
       organizationId,
+      deletedAt: null,
       date: today,
       status: { notIn: ["cancelada", "reagendada"] },
     },
@@ -409,6 +410,7 @@ async function getPatientAppointments(organizationId: string, patientId: string)
     where: {
       organizationId,
       patientId,
+      deletedAt: null,
     },
     include: {
       patient: { select: { fullName: true } },

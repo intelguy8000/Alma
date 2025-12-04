@@ -144,6 +144,7 @@ export async function PUT(
         where: {
           organizationId: session.user.organizationId,
           date: new Date(data.newDate),
+          deletedAt: null,
           status: {
             notIn: ["cancelada", "reagendada"],
           },
@@ -243,6 +244,7 @@ export async function PUT(
           organizationId: session.user.organizationId,
           id: { not: id },
           date: newDate,
+          deletedAt: null,
           status: {
             notIn: ["cancelada", "reagendada"],
           },

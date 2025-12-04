@@ -156,6 +156,7 @@ export async function POST(request: NextRequest) {
       where: {
         organizationId: session.user.organizationId,
         date: new Date(data.date),
+        deletedAt: null,
         status: {
           notIn: ["cancelada", "reagendada"],
         },

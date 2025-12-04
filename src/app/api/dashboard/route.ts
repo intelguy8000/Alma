@@ -185,6 +185,7 @@ export async function GET(request: NextRequest) {
     const appointments = await prisma.appointment.findMany({
       where: {
         organizationId,
+        deletedAt: null,
         ...(realModeActive && allowedPatientIds && { patientId: { in: allowedPatientIds } }),
         date: {
           gte: startDate,
@@ -266,6 +267,7 @@ export async function GET(request: NextRequest) {
         const attended = await prisma.appointment.count({
           where: {
             organizationId,
+            deletedAt: null,
             ...(realModeActive && allowedPatientIds && { patientId: { in: allowedPatientIds } }),
             date: {
               gte: dayStart,
@@ -278,6 +280,7 @@ export async function GET(request: NextRequest) {
         const cancelled = await prisma.appointment.count({
           where: {
             organizationId,
+            deletedAt: null,
             ...(realModeActive && allowedPatientIds && { patientId: { in: allowedPatientIds } }),
             date: {
               gte: dayStart,
@@ -290,6 +293,7 @@ export async function GET(request: NextRequest) {
         const scheduled = await prisma.appointment.count({
           where: {
             organizationId,
+            deletedAt: null,
             ...(realModeActive && allowedPatientIds && { patientId: { in: allowedPatientIds } }),
             date: {
               gte: dayStart,
@@ -315,6 +319,7 @@ export async function GET(request: NextRequest) {
     const upcomingAppointmentsRaw = await prisma.appointment.findMany({
       where: {
         organizationId,
+        deletedAt: null,
         ...(realModeActive && allowedPatientIds && { patientId: { in: allowedPatientIds } }),
         date: {
           gte: startOfDay(today),
