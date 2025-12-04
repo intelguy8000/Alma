@@ -676,6 +676,40 @@ Neon PostgreSQL incluye PITR como respaldo adicional:
 
 ### Diciembre 2024
 
+#### Dashboard v2 - Rediseño Completo (2024-12-04)
+
+**Scorecards rediseñados** (enfoque en retención):
+- ❌ Removidos: Ventas, Gastos, Utilidad (movidos a P&G)
+- ✅ Agregados:
+  - **Pacientes Activos**: Con cita en últimos 90 días
+  - **Nuevos Este Mes**: Primera cita ever en mes actual
+  - **Recurrentes**: 2+ citas en mes actual
+  - **En Riesgo**: Sin cita en X días (clickeable, abre modal con lista)
+
+**Gráfico "Pacientes por Semana"** (antes "Pacientes últimos 7 días"):
+- Navegación con flechas ← → entre semanas
+- Solo Lun-Vie (sin fines de semana)
+- Línea verde: Pacientes atendidos (ventas)
+- Línea amarilla punteada: Semana anterior (comparación)
+- Línea roja: Cancelaciones
+- Nueva API: `/api/dashboard/weekly-patients`
+
+**Gráfico "Distribución de Citas"** (antes "Resumen de Citas"):
+- Vista Donut (acumulado histórico) o Trend Line (últimas 8 semanas)
+- Toggle con iconos 🥧 | 📈
+- Tabs: Por Modalidad (Presencial/Virtual) | Por Tipo (Normal/T.Choque)
+- Nueva API: `/api/dashboard/appointments-distribution`
+
+**"Citas de Mañana" rediseñado**:
+- Banner de estado prominente:
+  - 🟡 Amarillo: X citas pendientes por confirmar
+  - 🟢 Verde: Todas confirmadas
+  - 🔴 Rojo: X canceladas
+  - ⚪ Gris: No hay citas
+- Lista solo muestra citas que requieren acción
+- Link "Ver todas" con fecha de mañana
+- **Fix timezone**: Ahora usa `getColombiaTomorrow()`
+
 #### Timezone Colombia (America/Bogota)
 - **Estandarización completa** de timezone en toda la aplicación
 - Nuevas funciones centralizadas en `src/lib/dates.ts`:
