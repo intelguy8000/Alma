@@ -268,16 +268,16 @@ export async function GET(request: NextRequest) {
         const dayEnd = endOfDay(dayDate);
         const isFuture = dayDate > today;
 
-        const attended = await prisma.appointment.count({
+        // Count patients attended = patients with sales on this day
+        const attended = await prisma.sale.count({
           where: {
             organizationId,
             deletedAt: null,
-            ...(realModeActive && allowedPatientIds && { patientId: { in: allowedPatientIds } }),
+            ...(realModeActive && { hasElectronicInvoice: true }),
             date: {
               gte: dayStart,
               lte: dayEnd,
             },
-            status: "completada",
           },
         });
 
