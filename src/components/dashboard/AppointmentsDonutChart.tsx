@@ -19,7 +19,6 @@ interface DistributionData {
     normalPercent: number;
     terapiaChoquePercent: number;
   };
-  period: string;
 }
 
 // Colors
@@ -68,7 +67,7 @@ export function AppointmentsDonutChart() {
   const loadData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/dashboard/appointments-distribution?period=month");
+      const response = await fetch("/api/dashboard/appointments-distribution");
       if (response.ok) {
         const result = await response.json();
         setData(result);
@@ -211,7 +210,7 @@ export function AppointmentsDonutChart() {
 
       {/* Period indicator */}
       <p className="text-xs text-center text-[#5C7A6B]/70 mt-3">
-        Este mes
+        Acumulado histórico
       </p>
     </div>
   );

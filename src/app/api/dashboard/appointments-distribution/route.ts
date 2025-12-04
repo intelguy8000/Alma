@@ -1,21 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isRealModeEnabled, getPatientIdsWithInvoice } from "@/lib/realMode";
-import { subDays, subMonths, startOfMonth } from "date-fns";
-import { getColombiaToday } from "@/lib/dates";
 
 // GET /api/dashboard/appointments-distribution - Get appointments distribution data
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.organizationId) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
-
-    const { searchParams } = new URL(request.url);
-    const period = searchParams.get("period") || "month"; // week, month, quarter
 
     const organizationId = session.user.organizationId;
 
@@ -27,33 +22,12 @@ export async function GET(request: NextRequest) {
       allowedPatientIds = await getPatientIdsWithInvoice(organizationId);
     }
 
-    // Calculate date range based on period
-    const today = getColombiaToday();
-    let startDate: Date;
-
-    switch (period) {
-      case "week":
-        startDate = subDays(today, 7);
-        break;
-      case "quarter":
-        startDate = subMonths(today, 3);
-        break;
-      case "month":
-      default:
-        startDate = startOfMonth(today);
-        break;
-    }
-
-    // Get all appointments in the period (excluding cancelled and deleted)
+    // Get ALL appointments (cumulative, no date filter)
     const appointments = await prisma.appointment.findMany({
       where: {
         organizationId,
         deletedAt: null,
         ...(realModeActive && allowedPatientIds && { patientId: { in: allowedPatientIds } }),
-        date: {
-          gte: startDate,
-          lte: today,
-        },
         status: {
           notIn: ["cancelada", "reagendada"],
         },
@@ -95,7 +69,6 @@ export async function GET(request: NextRequest) {
         normalPercent: totalType > 0 ? Math.round((normalCount / totalType) * 100) : 0,
         terapiaChoquePercent: totalType > 0 ? Math.round((terapiaChoqueCount / totalType) * 100) : 0,
       },
-      period,
     });
   } catch (error) {
     console.error("Error fetching appointments distribution:", error);
