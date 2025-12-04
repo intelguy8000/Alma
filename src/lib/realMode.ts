@@ -24,6 +24,7 @@ export async function getPatientIdsWithInvoice(organizationId: string): Promise<
   const salesWithInvoice = await prisma.sale.findMany({
     where: {
       organizationId,
+      deletedAt: null,
       hasElectronicInvoice: true,
       appointment: {
         isNot: null,

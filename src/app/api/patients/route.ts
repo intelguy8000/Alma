@@ -124,6 +124,7 @@ export async function POST(request: NextRequest) {
       const existingPatient = await prisma.patient.findFirst({
         where: {
           organizationId: session.user.organizationId,
+          deletedAt: null,
           isActive: true,
           OR: duplicateConditions,
         },

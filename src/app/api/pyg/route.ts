@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
     const sales = await prisma.sale.findMany({
       where: {
         organizationId: session.user.organizationId,
+        deletedAt: null,
         ...(realModeActive && { hasElectronicInvoice: true }),
         date: {
           gte: start,
@@ -53,6 +54,7 @@ export async function GET(request: NextRequest) {
     const expenses = await prisma.expense.findMany({
       where: {
         organizationId: session.user.organizationId,
+        deletedAt: null,
         date: {
           gte: start,
           lte: end,
@@ -139,6 +141,7 @@ async function getMonthlyData(organizationId: string, realModeActive: boolean) {
       prisma.sale.aggregate({
         where: {
           organizationId,
+          deletedAt: null,
           ...(realModeActive && { hasElectronicInvoice: true }),
           date: {
             gte: monthStart,
@@ -152,6 +155,7 @@ async function getMonthlyData(organizationId: string, realModeActive: boolean) {
       prisma.expense.aggregate({
         where: {
           organizationId,
+          deletedAt: null,
           date: {
             gte: monthStart,
             lte: monthEnd,

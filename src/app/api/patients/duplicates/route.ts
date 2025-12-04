@@ -26,6 +26,7 @@ export async function GET() {
     const patients = await prisma.patient.findMany({
       where: {
         organizationId,
+        deletedAt: null,
         isActive: true,
         OR: [
           { phone: { not: null, notIn: [""] } },

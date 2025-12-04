@@ -20,6 +20,7 @@ export async function GET(
       where: {
         id,
         organizationId: session.user.organizationId,
+        deletedAt: null,
       },
       include: {
         appointments: {
@@ -75,6 +76,7 @@ export async function PUT(
       where: {
         id,
         organizationId: session.user.organizationId,
+        deletedAt: null,
       },
     });
 
@@ -105,6 +107,7 @@ export async function PUT(
       const duplicatePatient = await prisma.patient.findFirst({
         where: {
           organizationId: session.user.organizationId,
+          deletedAt: null,
           isActive: true,
           id: { not: id }, // Exclude current patient
           OR: duplicateConditions,

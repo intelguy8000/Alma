@@ -20,6 +20,7 @@ export async function GET(
       where: {
         id,
         organizationId: session.user.organizationId,
+        deletedAt: null,
       },
       include: {
         provider: {
@@ -70,6 +71,7 @@ export async function PUT(
       where: {
         id,
         organizationId: session.user.organizationId,
+        deletedAt: null,
       },
     });
 

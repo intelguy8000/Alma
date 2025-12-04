@@ -341,6 +341,7 @@ async function searchPatients(organizationId: string, query: string) {
   const patients = await prisma.patient.findMany({
     where: {
       organizationId,
+      deletedAt: null,
       isActive: true,
       OR: [
         { fullName: { contains: query, mode: "insensitive" } },
@@ -480,6 +481,7 @@ async function getFinancialSummary(organizationId: string, period: "today" | "we
     prisma.sale.aggregate({
       where: {
         organizationId,
+        deletedAt: null,
         date: { gte: startDate },
       },
       _sum: { amount: true },
@@ -488,6 +490,7 @@ async function getFinancialSummary(organizationId: string, period: "today" | "we
     prisma.expense.aggregate({
       where: {
         organizationId,
+        deletedAt: null,
         date: { gte: startDate },
       },
       _sum: { amount: true },

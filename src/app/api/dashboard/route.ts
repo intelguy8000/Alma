@@ -108,6 +108,7 @@ export async function GET(request: NextRequest) {
     const sales = await prisma.sale.aggregate({
       where: {
         organizationId,
+        deletedAt: null,
         ...(realModeActive && { hasElectronicInvoice: true }),
         date: {
           gte: startDate,
@@ -124,6 +125,7 @@ export async function GET(request: NextRequest) {
     const previousSalesResult = await prisma.sale.aggregate({
       where: {
         organizationId,
+        deletedAt: null,
         ...(realModeActive && { hasElectronicInvoice: true }),
         date: {
           gte: previousStartDate,
@@ -140,6 +142,7 @@ export async function GET(request: NextRequest) {
     const expenses = await prisma.expense.aggregate({
       where: {
         organizationId,
+        deletedAt: null,
         date: {
           gte: startDate,
           lte: endDate,
@@ -155,6 +158,7 @@ export async function GET(request: NextRequest) {
     const previousExpensesResult = await prisma.expense.aggregate({
       where: {
         organizationId,
+        deletedAt: null,
         date: {
           gte: previousStartDate,
           lte: previousEndDate,
