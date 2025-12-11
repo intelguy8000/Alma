@@ -733,6 +733,56 @@ Neon PostgreSQL incluye PITR como respaldo adicional:
 - Formato de respuestas mejorado (sin tablas markdown)
 - Timezone corregido para fecha y citas del día
 
+#### Feedback de Usuario + Playwright MCP (2024-12-11)
+
+**Nuevas funcionalidades:**
+- **Terapia Capilar**: Nuevo tipo de cita con icono Sparkles púrpura (#8B5CF6)
+- **Sábado en calendario**: La agenda ahora muestra Lun-Sáb (antes solo Lun-Vie)
+- **Pagos de $0**: Validación actualizada para permitir cortesías y casos sociales
+
+**Archivos modificados:**
+- `prisma/schema.prisma` - Enum AppointmentType con `terapia_capilar`
+- `src/components/calendar/CalendarView.tsx` - `weekends=true`, `hiddenDays=[0]`
+- `src/components/ventas/SaleModal.tsx` - Validación `amount < 0` (permite 0)
+- `src/app/api/sales/route.ts` - Backend acepta `amount >= 0`
+- +6 archivos con typeLabels, typeColors, typeConfig para Terapia Capilar
+
+**Herramientas:**
+- Configurado **Playwright MCP** para verificación visual automatizada
+- Documentación en `docs/PLAYWRIGHT-MCP.md`
+
+---
+
+## Herramientas de Verificación
+
+### Playwright MCP
+
+Este proyecto tiene configurado Playwright MCP para verificación visual automatizada.
+
+**Configuración:**
+```bash
+claude mcp add playwright -- npx @playwright/mcp@latest
+```
+
+**Uso básico:**
+```
+Usa playwright mcp para verificar en medicina-del-alma.vercel.app:
+1. [Descripción del cambio a verificar]
+2. Toma screenshot como evidencia
+```
+
+**Documentación completa:** Ver `docs/PLAYWRIGHT-MCP.md`
+
+**Screenshots de verificación:** `/screenshots/`
+
+### Flujo de QA Recomendado
+
+1. Implementar cambios
+2. Ejecutar build (`npm run build`)
+3. Deploy a Vercel (`git push`)
+4. Verificar visualmente con Playwright MCP
+5. Documentar con screenshots en `/screenshots/`
+
 ---
 
 *Última actualización: Diciembre 2024*
