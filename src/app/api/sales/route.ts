@@ -110,9 +110,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!amount || amount <= 0) {
+    if (amount === undefined || amount === null || amount < 0) {
       return NextResponse.json(
-        { error: "El monto es requerido y debe ser mayor a 0" },
+        { error: "El monto es requerido y no puede ser negativo" },
         { status: 400 }
       );
     }

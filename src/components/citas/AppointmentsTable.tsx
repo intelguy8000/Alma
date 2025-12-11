@@ -14,6 +14,7 @@ import {
   Check,
   Trash2,
   Banknote,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getColombiaGreeting } from "@/lib/dates";
@@ -36,7 +37,7 @@ export interface Appointment {
   patientName: string;
   patientPhone: string;
   patientWhatsapp?: string;
-  type: "presencial" | "virtual" | "terapia_choque";
+  type: "presencial" | "virtual" | "terapia_choque" | "terapia_capilar";
   location: string;
   locationLabel: string;
   status: "confirmada" | "no_responde" | "cancelada" | "reagendada" | "completada";
@@ -69,6 +70,11 @@ const typeConfig = {
     icon: Zap,
     label: "T. Choque",
     color: "text-amber-700 bg-amber-50 border-amber-200",
+  },
+  terapia_capilar: {
+    icon: Sparkles,
+    label: "T. Capilar",
+    color: "text-purple-700 bg-purple-50 border-purple-200",
   },
 };
 

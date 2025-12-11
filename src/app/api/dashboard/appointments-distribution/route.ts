@@ -42,16 +42,17 @@ export async function GET() {
     });
 
     // Calculate distribution by modality (presencial vs virtual)
-    // Note: terapia_choque is counted as presencial for modality purposes
+    // Note: terapia_choque and terapia_capilar are counted as presencial for modality purposes
     const presencialCount = allAppointments.filter(
-      (a) => a.type === "presencial" || a.type === "terapia_choque"
+      (a) => a.type === "presencial" || a.type === "terapia_choque" || a.type === "terapia_capilar"
     ).length;
     const virtualCount = allAppointments.filter((a) => a.type === "virtual").length;
     const totalModality = presencialCount + virtualCount;
 
     // Calculate distribution by type (normal vs terapia_choque)
+    // Note: terapia_capilar is considered a "normal" appointment type
     const normalCount = allAppointments.filter(
-      (a) => a.type === "presencial" || a.type === "virtual"
+      (a) => a.type === "presencial" || a.type === "virtual" || a.type === "terapia_capilar"
     ).length;
     const terapiaChoqueCount = allAppointments.filter(
       (a) => a.type === "terapia_choque"
@@ -85,11 +86,11 @@ export async function GET() {
         week: weekKey,
         weekLabel,
         presencial: weekAppointments.filter(
-          (a) => a.type === "presencial" || a.type === "terapia_choque"
+          (a) => a.type === "presencial" || a.type === "terapia_choque" || a.type === "terapia_capilar"
         ).length,
         virtual: weekAppointments.filter((a) => a.type === "virtual").length,
         normal: weekAppointments.filter(
-          (a) => a.type === "presencial" || a.type === "virtual"
+          (a) => a.type === "presencial" || a.type === "virtual" || a.type === "terapia_capilar"
         ).length,
         terapiaChoque: weekAppointments.filter(
           (a) => a.type === "terapia_choque"

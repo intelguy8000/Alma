@@ -28,6 +28,7 @@ const typeOptions = [
   { value: "presencial", label: "Presencial" },
   { value: "virtual", label: "Virtual" },
   { value: "terapia_choque", label: "Terapia de Choque" },
+  { value: "terapia_capilar", label: "Terapia Capilar" },
 ];
 
 export function AppointmentFilters({

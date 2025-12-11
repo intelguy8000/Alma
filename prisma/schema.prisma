@@ -126,6 +126,7 @@ enum AppointmentType {
   presencial
   virtual
   terapia_choque
+  terapia_capilar
 }
 
 enum AppointmentStatus {

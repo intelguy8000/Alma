@@ -17,6 +17,7 @@ const typeLabels = {
   presencial: "Presencial",
   virtual: "Virtual",
   terapia_choque: "T. Choque",
+  terapia_capilar: "T. Capilar",
 };
 
 // Capitalize first letter of each word, lowercase rest
@@ -44,7 +45,7 @@ interface CalendarEvent {
   extendedProps: {
     patientId: string;
     patientName: string;
-    type: "presencial" | "virtual" | "terapia_choque";
+    type: "presencial" | "virtual" | "terapia_choque" | "terapia_capilar";
     location: string;
     status: "confirmada" | "no_responde" | "cancelada" | "reagendada" | "completada";
     notes: string;
@@ -59,7 +60,7 @@ interface APIAppointment {
   date: string;
   startTime: string;
   endTime: string;
-  type: "presencial" | "virtual" | "terapia_choque";
+  type: "presencial" | "virtual" | "terapia_choque" | "terapia_capilar";
   location: string | null;
   status: "confirmada" | "no_responde" | "cancelada" | "reagendada" | "completada";
   notes: string | null;
@@ -75,6 +76,7 @@ const typeColors = {
   presencial: { bg: "#10B981", border: "#059669", text: "#ffffff" },
   virtual: { bg: "#3B82F6", border: "#2563EB", text: "#ffffff" },
   terapia_choque: { bg: "#F59E0B", border: "#D97706", text: "#ffffff" },
+  terapia_capilar: { bg: "#8B5CF6", border: "#7C3AED", text: "#ffffff" },
 };
 
 // Status modifiers
@@ -381,8 +383,8 @@ export function CalendarView() {
             slotMaxTime="21:00:00"
             slotDuration="01:00:00"
             allDaySlot={false}
-            weekends={false}
-            hiddenDays={[0, 6]}
+            weekends={true}
+            hiddenDays={[0]}
             selectable={true}
             selectMirror={true}
             editable={true}

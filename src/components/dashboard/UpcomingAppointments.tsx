@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Clock, User, Video, MapPin, Zap, AlertTriangle, CheckCircle, XCircle, Calendar } from "lucide-react";
+import { ArrowRight, Clock, User, Video, MapPin, Zap, AlertTriangle, CheckCircle, XCircle, Calendar, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Appointment {
   id: string;
   time: string;
   patient: string;
-  type: "presencial" | "virtual" | "terapia_choque";
+  type: "presencial" | "virtual" | "terapia_choque" | "terapia_capilar";
   status: "confirmada" | "no_responde" | "cancelada" | "reagendada" | "completada";
 }
 
@@ -41,6 +41,11 @@ const typeConfig = {
     icon: Zap,
     label: "T. Choque",
     color: "text-[#D4A574] bg-[#F5E6D3]",
+  },
+  terapia_capilar: {
+    icon: Sparkles,
+    label: "T. Capilar",
+    color: "text-[#8B5CF6] bg-[#EDE9FE]",
   },
 };
 

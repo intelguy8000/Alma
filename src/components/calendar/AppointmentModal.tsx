@@ -27,7 +27,7 @@ export interface AppointmentData {
   date: Date;
   startTime: string;
   endTime: string;
-  type: "presencial" | "virtual" | "terapia_choque";
+  type: "presencial" | "virtual" | "terapia_choque" | "terapia_capilar";
   location: string;
   status: "confirmada" | "no_responde" | "cancelada" | "reagendada" | "completada";
   notes: string;
@@ -58,6 +58,7 @@ const appointmentTypes = [
   { value: "presencial", label: "Presencial", icon: MapPin, color: "text-emerald-600" },
   { value: "virtual", label: "Virtual", icon: Video, color: "text-blue-600" },
   { value: "terapia_choque", label: "Terapia de Choque", icon: Zap, color: "text-amber-600" },
+  { value: "terapia_capilar", label: "Terapia Capilar", icon: User, color: "text-purple-600" },
 ];
 
 const statuses = [
