@@ -10,7 +10,7 @@ const appointmentSchema = z.object({
   date: z.string().min(1, "La fecha es requerida"),
   startTime: z.string().min(1, "La hora de inicio es requerida"),
   endTime: z.string().min(1, "La hora de fin es requerida"),
-  type: z.enum(["presencial", "virtual", "terapia_choque"]).default("presencial"),
+  type: z.enum(["presencial", "virtual", "terapia_choque", "terapia_capilar"]).default("presencial"),
   location: z.string().optional().nullable(),
   status: z.enum(["confirmada", "no_responde", "cancelada", "reagendada", "completada"]).default("confirmada"),
   notes: z.string().optional().nullable(),
